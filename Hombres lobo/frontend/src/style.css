@@ -1,0 +1,22 @@
+/* Tipografías del proyecto */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+/* =========================
+   VARIABLES DE COLOR (root)
+   ========================= */
+:root {
+  --color-page-bg: #121212;      /* Fondo general de la página */
+  --color-header-bg: #1C1C1C;    /* Fondo del header */
+  --color-footer-bg: #1C1C1C;    /* Fondo del footer */
+  --color-border: #1C1C1C;       /* Bordes / separadores */
+
+  --color-text-main: #E0E0E0;    /* Texto principal */
+  --color-text-muted: #C1A35E;   /* Detalles dorados: enlaces, acentos */
+
+  --color-input-bg: #E0E0E0;     /* Fondo de inputs */
+  --color-input-text: #121212;   /* Texto dentro de inputs */
+  --color-placeholder: #555555;  /* Texto placeholder */
+
+  --color-button-bg: #8A0303;        /* Botón principal (Login) */
+  --color-button-bg-hover: #6b0202;  /* Hover botón principal */
+}
