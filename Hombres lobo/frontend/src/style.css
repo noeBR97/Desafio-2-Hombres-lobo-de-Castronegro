@@ -49,6 +49,25 @@ main {
   color: var(--color-text-main);
 }
 
+/* botones de registro y login */
+button {
+  padding: 0.6rem 1.2rem;
+  margin: 0.3rem;
+  border: none;
+  border-radius: 5px;
+  background: var(--color-button-bg);
+  color: var(--color-text-main);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+}
+
+button:hover {
+  background: var(--color-button-bg-hover);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.7);
+}
+
 footer {
   background-color: var(--color-footer-bg);
   color: var(--color-text-main);
