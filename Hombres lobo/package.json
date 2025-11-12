@@ -1,0 +1,22 @@
+{
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "test:front": "npm --prefix frontend test",
+    "test:back": "cd backend && php artisan test",
+    "test:all": "npm run test:back && npm run test:front"
+  },
+  "lint-staged": {
+    "frontend/**/*.{ts,tsx}": [
+      "npm --prefix frontend run lint:fix",
+      "git add"
+    ],
+    "backend/**/*.php": [
+      "cd backend && ./vendor/bin/pint",
+      "git add"
+    ]
+  }
+}
