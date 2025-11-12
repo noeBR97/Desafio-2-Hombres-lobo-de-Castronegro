@@ -27,6 +27,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  font-family: "Cinzel", serif;
 }
 
 main {
@@ -61,6 +62,7 @@ button {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+  font-family: "Cinzel", serif;
 }
 
 button:hover {
@@ -139,6 +141,7 @@ input {
   font-size: 1rem;
   outline: none;
   transition: all 0.3s ease;
+  font-family: "Cinzel", serif;
 }
 
 input:focus {
