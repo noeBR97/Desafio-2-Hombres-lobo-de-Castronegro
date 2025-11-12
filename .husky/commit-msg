@@ -1,2 +1,0 @@
-#!/usr/bin/env sh
-bash scripts/check-loc-commit.sh "$1"

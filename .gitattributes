@@ -1,5 +1,0 @@
-*.sh          text eol=lf
-.husky/*      text eol=lf
-*.json        text eol=lf
-*.md          text eol=lf
-.gitattributes text eol=lf
