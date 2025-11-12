@@ -119,6 +119,34 @@ footer {
   color: var(--color-button-bg-hover);
 }
 
+/* formulario */
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* inputs */
+input {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.6rem 1rem;
+  margin: 0.3rem;
+  border: 2px solid var(--color-text-muted);
+  border-radius: 5px;
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  border-color: var(--color-button-bg-hover);
+  box-shadow: 0 0 10px var(--color-text-muted);
+  background-color: var(--color-input-bg);
+}
+
 footer a {
   color: var(--color-text-main);
 }
