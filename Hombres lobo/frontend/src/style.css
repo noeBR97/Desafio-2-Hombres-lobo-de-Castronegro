@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
 
 /* =========================
-   VARIABLES DE COLOR (root)
+    VARIABLES DE COLOR (root)
    ========================= */
 :root {
   --color-page-bg: #121212;      /* Fondo general de la página */
@@ -19,4 +19,43 @@
 
   --color-button-bg: #8A0303;        /* Botón principal (Login) */
   --color-button-bg-hover: #6b0202;  /* Hover botón principal */
+}
+
+/* página principal */
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+  background-image: 
+    url('./img/FONDO.jpg'),
+    url('./img/FONDO\ 2.png');
+  background-size: 
+    contain,
+    cover;
+  background-position: 
+    center, 
+    center;
+  background-repeat: 
+    no-repeat, 
+    no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-text-main);
+}
+
+footer {
+  background-color: var(--color-footer-bg);
+  color: var(--color-text-main);
+  text-align: center;
+  padding: 1rem;
+}
+
+footer a {
+  color: var(--color-text-main);
 }
