@@ -1,7 +1,8 @@
 {
   "devDependencies": {
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.6"
+    "lint-staged": "^16.2.6",
+    "prettier": "^3.6.2"
   },
   "scripts": {
     "prepare": "husky",
@@ -16,6 +17,10 @@
     ],
     "backend/**/*.php": [
       "cd backend && ./vendor/bin/pint",
+      "git add"
+    ],
+    "**/*.{html,css,json,md}": [
+      "prettier --write",
       "git add"
     ]
   }
