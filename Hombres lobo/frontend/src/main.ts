@@ -20,7 +20,7 @@ boton.addEventListener('click', async () => {
   resultado.textContent = 'Cargando...'
 
   try {
-    const respuesta = await api.get('/ping') // 👈 coincide con Route::get('/ping', ...)
+    const respuesta = await api.get('/ping') // coincide con Route::get('/ping', ...)
 
     resultado.textContent = JSON.stringify(respuesta.data, null, 2)
   } catch (error) {
