@@ -1,15 +1,20 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UsersController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Rutas públicas (sin token)
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login',    [AuthController::class, 'login']);
 
-Route::get('/ping', function () {
-    return response()->json([
-        'mensaje' => 'API de Laravel funcionando 🐘',
-        'ok'      => true,
-    ]);
+// Rutas protegidas (requieren token Bearer)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/me',     [AuthController::class, 'me']);
+    Route::post('/logout',[AuthController::class, 'logout']);
 });
+
+Route::middleware(['auth:sanctum', 'admin'])->get('/users', 
+[UsersController::class, 'index']);
+
+ 
+

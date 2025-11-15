@@ -32,5 +32,6 @@ class User extends Authenticatable
         'partidas_ganadas'   => 'integer',
         'partidas_perdidas'  => 'integer',
         'email_verified_at'  => 'datetime',
+        'is_admin' => 'boolean'
     ];
 }
