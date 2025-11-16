@@ -14,16 +14,18 @@ class User extends Authenticatable
         'nombre',
         'apellido1',
         'apellido2',
-        'email',
-        'password', 
+        'correo',
         'nick',
+        'clave',
         'partidas_jugadas',
         'partidas_ganadas',
         'partidas_perdidas',
+        'is_admin',
     ];
 
+    // Campos que NO se devuelven en JSON
     protected $hidden = [
-        'password',
+        'clave',
         'remember_token',
     ];
 
@@ -32,6 +34,6 @@ class User extends Authenticatable
         'partidas_ganadas'   => 'integer',
         'partidas_perdidas'  => 'integer',
         'email_verified_at'  => 'datetime',
-        'is_admin' => 'boolean'
+        'is_admin'           => 'boolean',
     ];
 }
