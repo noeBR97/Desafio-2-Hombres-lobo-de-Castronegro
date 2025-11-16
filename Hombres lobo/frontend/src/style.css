@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
 
 /* =========================
-   VARIABLES DE COLOR (root)
+    VARIABLES DE COLOR (root)
    ========================= */
 :root {
   --color-page-bg: #121212;      /* Fondo general de la página */
@@ -19,4 +19,161 @@
 
   --color-button-bg: #8A0303;        /* Botón principal (Login) */
   --color-button-bg-hover: #6b0202;  /* Hover botón principal */
+}
+
+/* página principal */
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: "Cinzel", serif;
+}
+
+main {
+  flex: 1;
+  background-image: 
+    url('./img/FONDO.jpg'),
+    url('./img/FONDO\ 2.png');
+  background-size: 
+    contain,
+    cover;
+  background-position: 
+    center, 
+    center;
+  background-repeat: 
+    no-repeat, 
+    no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-text-main);
+}
+
+/* botones de registro y login */
+button {
+  padding: 0.6rem 1.2rem;
+  margin: 0.3rem;
+  border: none;
+  border-radius: 5px;
+  background: var(--color-button-bg);
+  color: var(--color-text-main);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+  font-family: "Cinzel", serif;
+}
+
+button:hover {
+  background: var(--color-button-bg-hover);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.7);
+}
+
+footer {
+  background-color: var(--color-footer-bg);
+  color: var(--color-text-main);
+  text-align: center;
+  padding: 1rem;
+}
+
+/* modal registro */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--color-page-bg);
+  border: 2px solid var(--color-text-muted);
+  border-radius: 10px;
+  padding: 2rem;
+  color: var(--color-text-main);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+  z-index: 1000;
+  max-width: 90%;
+  width: 400px;
+  text-align: center;
+  display: none;
+}
+
+.modal_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.7);
+  z-index: 900;
+  display: none;
+}
+
+.modal .cerrar {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.modal .cerrar:hover {
+  color: var(--color-button-bg-hover);
+}
+
+/* formulario */
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.error_msg {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  visibility: hidden;
+}
+
+.valid_msg {
+  color: rgb(0, 179, 3);
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  visibility: hidden;
+}
+
+.valid_msg.visible {
+  visibility: visible;
+}
+
+.error_msg.visible {
+  visibility: visible;
+}
+
+/* inputs */
+input {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.6rem 1rem;
+  margin: 0.3rem;
+  border: 2px solid var(--color-text-muted);
+  border-radius: 5px;
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  font-family: "Cinzel", serif;
+}
+
+input:focus {
+  border-color: var(--color-button-bg-hover);
+  box-shadow: 0 0 10px var(--color-text-muted);
+  background-color: var(--color-input-bg);
+}
+
+footer a {
+  color: var(--color-text-main);
 }

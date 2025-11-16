@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: 'http://backend:8000/api', // Laravel dentro de Docker
-});
+const baseURL = window.location.hostname === 'localhost'
+  ? 'http://localhost:8000/api' // navegador local
+  : 'http://backend:8000/api';  // front dentro de Docker
+
+const api = axios.create({ baseURL });
 
 export default api;
