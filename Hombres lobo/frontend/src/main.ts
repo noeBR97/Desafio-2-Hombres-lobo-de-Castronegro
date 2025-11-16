@@ -37,7 +37,7 @@ import {
 
 document.addEventListener('DOMContentLoaded', () => {
   const formulario = document.getElementById('formulario_registro')
-  const validMsg = document.getElementById('usuario_registrado') as HTMLElement
+  const validMsg = document.getElementById('valid_msg') as HTMLElement
   const errorMsg = document.getElementById('error_msg') as HTMLElement
   const botonRegistro = document.getElementById('registro') as HTMLButtonElement
   const modal = document.querySelector('.modal') as HTMLDivElement
