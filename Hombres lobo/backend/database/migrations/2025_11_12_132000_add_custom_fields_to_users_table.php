@@ -12,9 +12,9 @@ return new class extends Migration {
             $table->string('apellido1')->after('nombre');
             $table->string('apellido2')->nullable()->after('apellido1');
 
-            $table->string('email')->unique()->change();
+            $table->string('correo')->unique()->change();
 
-            $table->string('nick')->unique()->after('email');
+            $table->string('nick')->unique()->after('correo');
 
             $table->unsignedInteger('partidas_jugadas')->default(0)->after('remember_token');
             $table->unsignedInteger('partidas_ganadas')->default(0)->after('partidas_jugadas');

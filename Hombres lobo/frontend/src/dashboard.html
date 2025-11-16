@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Hombres Lobo</title>
+    <link rel="icon" href="img/LOGO.jpg" type="image/png">
+    <link rel="stylesheet" href="dashboardstyle.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        
+        <section class="perfil-columna">
+            
+            <div class="perfil-info">
+                <img src="img/AVATAR-USUARIO.png" alt="Avatar de usuario" class="avatar">
+                <span class="nick" id="nombre-usuario">default</span>
+            </div>
+
+            <div class="estadisticas" id="estadisticas-usuario">
+                <h3>Estadísticas:</h3>
+                <ul>
+                    <li id="usuario-partidas-jugadas">Partidas jugadas: x</li>
+                    <li id="usuario-victorias-partidas">Victorias: x</li>
+                    <li id="usuario-derrotas-partidas">Derrotas: x</li>
+                </ul>
+            </div>
+
+        </section>
+
+        <section class="partidas-columna">
+            
+            <h2>Partidas disponibles:</h2>
+            
+            <ul class="lista-partidas" id="lista-partidas">
+                <li>
+                    <span>- Partida_001</span>
+                    <button class="btn-unirse">Unirse</button>
+                </li>
+                
+            </ul>
+
+            <button class="btn-crear">Crear Partida</button>
+
+        </section>
+
+    </div>
+
+    <footer>
+      <div class="footer_container">
+        <p>© 2025 Hombres lobo de Castronegro. Todos los derechos reservados.</p>
+        <p><a href="#">Reglas juego</a></p>
+      </div>
+    </footer>
+    <script type="module" src="dashboard.ts"></script>
+
+</body>
+</html>
