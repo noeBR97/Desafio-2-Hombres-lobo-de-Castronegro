@@ -29,7 +29,7 @@ body {
     font-family: 'Crimson Text', serif; 
     color: var(--color-text-main); 
 
-    background-image: url('img/fondo-dashboard.png'); 
+    background-image: url('../img/fondo-dashboard.png'); 
     background-size: cover; 
     background-position: center center; 
     background-repeat: no-repeat; 
@@ -235,4 +235,22 @@ footer a:hover {
     footer span {
         margin-bottom: 5px;
     }
+}
+
+.btn-cerrar-sesion {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: transparent;
+  border: 2px solid var(--color-text-muted);
+  color: var(--color-text-muted);
+  font-family: 'Cinzel', serif;
+  font-size: 1em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cerrar-sesion:hover {
+  background-color: var(--color-text-muted);
+  color: var(--color-input-text); 
 }
