@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Panel de Administración</title>
+  </head>
+  <body>
+    <div id="response"></div>
+    <div id="panel-admin">
+      <h1>Panel de Administración</h1>
+
+      <button id="btn-mostrar-todos">Mostrar Todos los Usuarios</button>
+
+      <hr />
+
+      <div>
+        <label for="input-usuario">ID o Nickname del Usuario:</label>
+        <input type="text" id="input-usuario" placeholder="Ej: 5 o 'admin'" />
+        <button id="btn-buscar-uno">Buscar Usuario</button>
+        <button id="btn-borrar-uno">Borrar Usuario</button>
+      </div>
+
+      <hr />
+
+      <div>
+        <h3>Actualizar Usuario</h3>
+        <p>Para actualizar, primero busca un usuario.</p>
+        <form action="#">
+          <label for="nickname">Nombre de usuario:</label>
+          <input type="text" name="nickname" id="nickname-usuario" />
+          <label for="nickname">Email:</label>
+          <input type="text" name="email" id="email-usuario" />
+          <label for="nickname">Contraseña:</label>
+          <input type="text" name="contraseña" id="contraseña-usuario" />
+          <button id="actualizar-usuario">Actualizar</button>
+        </form>
+        <div id="contenedor-formulario-actualizar"></div>
+      </div>
+
+      <h3>Resultados de la API:</h3>
+      <pre id="salida-resultados"></pre>
+      <div>
+        <a href="/index.html">Volver</a>
+      </div>
+    </div>
+
+    <script type="module" src="../admin.ts"></script>
+  </body>
+</html>
