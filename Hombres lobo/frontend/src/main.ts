@@ -1,39 +1,10 @@
 import './style.css'
-import api from './api'
 import { 
   validarPass, 
   validarUserName, 
   validarEmail, 
   registrarUsuario, 
-  limpiarFormulario } from './validarFormularioRegistro'
-
-// const app = document.querySelector<HTMLDivElement>('#app')!
-
-// app.innerHTML = `
-//   <div class="app">
-//     <h1>Frontend Vite conectado a Laravel</h1>
-//     <button id="cargar-datos" type="button">
-//       Probar endpoint /ping
-//     </button>
-//     <pre id="resultado" class="resultado"></pre>
-//   </div>
-// `
-
-// const boton = document.querySelector<HTMLButtonElement>('#cargar-datos')!
-// const resultado = document.querySelector<HTMLPreElement>('#resultado')!
-
-// boton.addEventListener('click', async () => {
-//   resultado.textContent = 'Cargando...'
-
-//   try {
-//     const respuesta = await api.get('/ping') // 👈 coincide con Route::get('/ping', ...)
-
-//     resultado.textContent = JSON.stringify(respuesta.data, null, 2)
-//   } catch (error) {
-//     console.error(error)
-//     resultado.textContent = 'Error llamando a la API (mira la consola)'
-//   }
-// })
+  limpiarFormulario } from './TS/validarFormularioRegistro'
 
 document.addEventListener('DOMContentLoaded', () => {
   const formulario = document.getElementById('formulario_registro')
@@ -64,9 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const nombre = (document.getElementById('nombre_registro') as HTMLInputElement).value
     const apellido1 = (document.getElementById('apellido_registro') as HTMLInputElement).value
     const apellido2 = (document.getElementById('apellido2_registro') as HTMLInputElement).value
-    const email = (document.getElementById('email') as HTMLInputElement).value
+    const correo = (document.getElementById('email') as HTMLInputElement).value
     const nick = (document.getElementById('username_registro') as HTMLInputElement).value
-    const password = (document.getElementById('password_registro') as HTMLInputElement).value
+    const clave = (document.getElementById('password_registro') as HTMLInputElement).value
 
     const passOK = validarPass()
     const userOK = validarUserName()
@@ -80,9 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
       nombre,
       apellido1,
       apellido2,
-      email,
+      correo,
       nick,
-      password
+      clave
     })
 
     if (respuesta.usuario) {
@@ -98,57 +69,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 })
-// src/main.ts
-import './style.css';
 
 // ===============================
-//  REFERENCIAS DEL MODAL
+//  LOGIN (SELECTORES)
 // ===============================
-const openBtn = document.querySelector<HTMLButtonElement>('#open-login');
-const closeBtn = document.querySelector<HTMLButtonElement>('#close-login');
-const modal = document.querySelector<HTMLDivElement>('#login-modal');
-const dismissButtons =
-  document.querySelectorAll<HTMLElement>('[data-dismiss="modal"]');
+const btnLogin = document.querySelector<HTMLButtonElement>('#open-login');
+const modalLogin = document.querySelector<HTMLDivElement>('#login-modal');
+const overlayLogin = document.querySelector<HTMLDivElement>('#login-overlay');
+const cerrarLogin = document.querySelector<HTMLSpanElement>('#close-login');
 
-// ===============================
-//  FORMULARIO DE LOGIN
-// ===============================
 const formLogin = document.querySelector<HTMLFormElement>('#form-login');
 const inputCorreo = document.querySelector<HTMLInputElement>('#correo');
 const inputClave = document.querySelector<HTMLInputElement>('#clave');
 const errorLogin = document.querySelector<HTMLParagraphElement>('#error-login');
 
 // ===============================
-//  ABRIR / CERRAR MODAL
+//  ABRIR / CERRAR MODAL LOGIN
 // ===============================
-
-// Abrir modal
-openBtn?.addEventListener('click', () => {
-  modal?.classList.add('show');
-});
-
-// Cerrar con la X
-closeBtn?.addEventListener('click', () => {
-  modal?.classList.remove('show');
-});
-
-// Cerrar haciendo click en el fondo oscuro
-modal?.addEventListener('click', (e) => {
-  if (e.target === modal) {
-    modal.classList.remove('show');
+btnLogin?.addEventListener('click', () => {
+  if (modalLogin && overlayLogin) {
+    modalLogin.style.display = 'block';
+    overlayLogin.style.display = 'block';
   }
 });
 
-// Cerrar con cualquier botón que tenga data-dismiss="modal"
-// (por ejemplo el botón Cancelar)
-dismissButtons.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    modal?.classList.remove('show');
-  });
+cerrarLogin?.addEventListener('click', () => {
+  if (modalLogin && overlayLogin) {
+    modalLogin.style.display = 'none';
+    overlayLogin.style.display = 'none';
+  }
+});
+
+overlayLogin?.addEventListener('click', () => {
+  if (modalLogin && overlayLogin) {
+    modalLogin.style.display = 'none';
+    overlayLogin.style.display = 'none';
+  }
 });
 
 // ===============================
-//  LOGIN
+//  LOGIN (SUBMIT AL BACKEND)
 // ===============================
 formLogin?.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -183,7 +143,11 @@ formLogin?.addEventListener('submit', async (e) => {
       sessionStorage.setItem('user', JSON.stringify(data.user));
     }
 
-    modal?.classList.remove('show');
+    // Cerrar modal de LOGIN después de loguear
+    if (modalLogin && overlayLogin) {
+      modalLogin.style.display = 'none';
+      overlayLogin.style.display = 'none';
+    }
     formLogin.reset();
     errorLogin.hidden = true;
     errorLogin.textContent = '';
@@ -200,3 +164,4 @@ formLogin?.addEventListener('submit', async (e) => {
     errorLogin.hidden = false;
   }
 });
+

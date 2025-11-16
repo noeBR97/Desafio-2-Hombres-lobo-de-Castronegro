@@ -1,5 +1,5 @@
 import axios from 'axios'
-import api from './api'
+import api from '../api'
 
 const formulario = document.getElementById('formulario_registro') as HTMLFormElement
 const errorMsg = document.querySelector('.error_msg') as HTMLElement
@@ -47,12 +47,12 @@ export async function validarUserName(): Promise<boolean> {
 }
 
 export async function validarEmail(): Promise<boolean> {
-    const email = (document.getElementById('email') as HTMLInputElement).value
+    const correo = (document.getElementById('correo') as HTMLInputElement).value
     const errorMsgEmail = document.getElementById('error_msg_email') as HTMLElement
 
     try {
         const respuesta = await axios.post('http://localhost:8000/api/validar-email', {
-            email: email
+            correo: correo
         })
 
         if (!respuesta.data.disponible) {
@@ -90,7 +90,7 @@ export function limpiarFormulario() {
 export async function registrarUsuario(datos:any) {
     try {
         console.log(datos)
-        const res = await api.post('/usuarios/registrar', datos)
+        const res = await api.post('http://localhost:8000/api/usuarios/registrar', datos)
         console.log(res)
         return res.data
     } catch (error:any) {
