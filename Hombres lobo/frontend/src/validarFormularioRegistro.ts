@@ -1,12 +1,14 @@
+import axios from 'axios'
 import api from './api'
 
 const formulario = document.getElementById('formulario_registro')
+const errorMsg = document.getElementById('error_msg') as HTMLElement
 
 export function validarPass () {
     const pass = (document.getElementById('password_registro') as HTMLInputElement).value
-    const errorMsg = document.getElementById('password_error') as HTMLElement
-    const validMsg = document.getElementById('usuario_registrado') as HTMLElement
     
+    const validMsg = document.getElementById('usuario_registrado') as HTMLElement
+
     let passReg = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
     let resultado = passReg.test(pass)
     if (!resultado) {
@@ -15,6 +17,26 @@ export function validarPass () {
     } else {
         errorMsg.textContent = ''
         errorMsg.classList.remove('visible')
+    }
+}
+
+export async function validarUserName() {
+    const userName = (document.getElementById('username_registro') as HTMLInputElement).value
+    try {
+        const respuesta = await axios.post('/usuarios/validar-username', {
+            name: userName
+        })
+
+        if (!respuesta.data.disponible) {
+            errorMsg.textContent = 'Ese nombre de usuario ya existe.'
+            errorMsg.classList.add('visible')
+        } else {
+            errorMsg.textContent = ''
+            errorMsg.classList.remove('visible')
+        }
+    } catch(e) {
+        errorMsg.textContent = 'Error al contactar con el servidor.'
+        errorMsg.classList.add('visible')
     }
 }
 
