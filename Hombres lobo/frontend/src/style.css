@@ -135,6 +135,17 @@ form {
   visibility: hidden;
 }
 
+.valid_msg {
+  color: rgb(0, 179, 3);
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  visibility: hidden;
+}
+
+.valid_msg.visible {
+  visibility: visible;
+}
+
 .error_msg.visible {
   visibility: visible;
 }
