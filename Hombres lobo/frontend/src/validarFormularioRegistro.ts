@@ -40,6 +40,27 @@ export async function validarUserName() {
     }
 }
 
+export async function validarEmail() {
+    const email = (document.getElementById('email') as HTMLInputElement).value
+
+    try {
+        const respuesta = await axios.post('/usuarios/validar-email', {
+            name: email
+        })
+
+        if (!respuesta.data.disponible) {
+            errorMsg.textContent = 'Ese email ya está registrado en el sistema.'
+            errorMsg.classList.add('visible')
+        } else {
+            errorMsg.textContent = ''
+            errorMsg.classList.remove('visible')
+        }
+    } catch(e) {
+        errorMsg.textContent = 'Error al contactar con el servidor.'
+        errorMsg.classList.add('visible')
+    }
+}
+
 export async function registrarUsuario(datos:any) {
     try {
         console.log(datos)
