@@ -39,6 +39,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const formulario = document.getElementById('formulario_registro')
   const validMsg = document.getElementById('usuario_registrado') as HTMLElement
   const errorMsg = document.getElementById('error_msg') as HTMLElement
+  const botonRegistro = document.getElementById('registro') as HTMLButtonElement
+  const modal = document.querySelector('.modal') as HTMLDivElement
+  const overlay =document.querySelector('.modal_overlay') as HTMLDivElement
+  const cerrar = document.querySelector('.cerrar') as HTMLSpanElement
+
+  botonRegistro.addEventListener('click', () => {
+    modal.style.display = 'block'
+    overlay.style.display = 'block'
+  })
+
+  cerrar.addEventListener('click', () => {
+    modal.style.display = 'none'
+    overlay.style.display = 'none'
+  })
+
+  overlay.addEventListener('click', () => {
+    modal.style.display = 'none'
+    overlay.style.display = 'none'
+  })
 
   formulario?.addEventListener('submit', async (e) => {
     e.preventDefault()
