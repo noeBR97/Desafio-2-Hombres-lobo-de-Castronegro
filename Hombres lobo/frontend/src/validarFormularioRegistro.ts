@@ -1,13 +1,12 @@
 import axios from 'axios'
 import api from './api'
 
-const formulario = document.getElementById('formulario_registro')
+const formulario = document.getElementById('formulario_registro') as HTMLFormElement
 const errorMsg = document.getElementById('error_msg') as HTMLElement
+const validMsg = document.getElementById('usuario_registrado') as HTMLElement
 
 export function validarPass () {
     const pass = (document.getElementById('password_registro') as HTMLInputElement).value
-    
-    const validMsg = document.getElementById('usuario_registrado') as HTMLElement
 
     let passReg = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
     let resultado = passReg.test(pass)
@@ -58,6 +57,22 @@ export async function validarEmail() {
     } catch(e) {
         errorMsg.textContent = 'Error al contactar con el servidor.'
         errorMsg.classList.add('visible')
+    }
+}
+
+export function limpiarFormulario() {
+    if (formulario) {
+        formulario.reset()
+    }
+
+    if (errorMsg) {
+        errorMsg.textContent = ''
+        errorMsg.classList.remove('visible')
+    }
+
+    if (validMsg) {
+        validMsg.textContent = ''
+        validMsg.classList.remove('visible')
     }
 }
 
