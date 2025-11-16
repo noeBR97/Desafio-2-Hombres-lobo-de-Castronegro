@@ -20,21 +20,30 @@ class AuthController extends Controller
             'nick'      => ['required', 'string', 'max:50', 'unique:users,nick'],
         ]);
 
-        $usuario = User::create([
+        try {
+            $usuario = User::create([
             'nombre'    => $datos['nombre'],
             'apellido1' => $datos['apellido1'],
             'apellido2' => $datos['apellido2'] ?? null,
             'email'     => $datos['email'],
             'password'  => Hash::make($datos['password']),
-            'nick'      => $datos['nick'],
-        ]);
+            'nick'      => $datos['nick']
+            ]);
 
-        $token = $usuario->createToken('token_login')->plainTextToken;
+            $token = $usuario->createToken('token_registro')->plainTextToken;
 
-        return response()->json([
-            'usuario' => $this->mapUsuario($usuario),
-            'token'   => $token,
-        ], 201);
+            return response()->json([
+                'usuario' => $this->mapUsuario($usuario),
+                'token'   => $token,
+            ], 201);
+        } catch(\Exception $e) {
+            \Log::error('Error en registrar: ' . $e->getMessage());
+            return response()->json([
+                'error'=> $e->getMessage(),
+            ], 500);
+        }
+
+
     }
 
     public function login(Request $request)
