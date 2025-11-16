@@ -1,6 +1,11 @@
 import './style.css'
 import api from './api'
-import { validarPass, registrarUsuario } from './validarFormularioRegistro'
+import { 
+  validarPass, 
+  validarUserName, 
+  validarEmail, 
+  registrarUsuario, 
+  limpiarFormulario } from './validarFormularioRegistro'
 
 // const app = document.querySelector<HTMLDivElement>('#app')!
 
@@ -32,6 +37,8 @@ import { validarPass, registrarUsuario } from './validarFormularioRegistro'
 
 document.addEventListener('DOMContentLoaded', () => {
   const formulario = document.getElementById('formulario_registro')
+  const validMsg = document.getElementById('usuario_registrado') as HTMLElement
+  const errorMsg = document.getElementById('error_msg') as HTMLElement
 
   formulario?.addEventListener('submit', async (e) => {
     e.preventDefault()
@@ -42,6 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const nick = (document.getElementById('username_registro') as HTMLInputElement).value
     const password = (document.getElementById('password_registro') as HTMLInputElement).value
 
+    const passOK = validarPass()
+    const userOK = validarUserName()
+    const emailOK = validarEmail()
+
+    if (!passOK || !userOK || !emailOK) {
+      return
+    }
+
     const respuesta = await registrarUsuario({
       nombre,
       apellido1,
@@ -51,11 +66,16 @@ document.addEventListener('DOMContentLoaded', () => {
       password
     })
 
-    if (respuesta.ok) {
+    if (respuesta.usuario) {
       console.log('Usuario creado: ', respuesta.usuario)
+      validMsg.textContent = 'Te has registrado correctamente!'
+      validMsg.classList.add('visible')
+
+      limpiarFormulario()
     } else {
       console.log('Error: ', respuesta)
+      errorMsg.textContent = 'Error al registrar el usuario.'
+      errorMsg.classList.add('visible')
     }
-    //validarPass()
   })
 })
