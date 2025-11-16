@@ -68,100 +68,103 @@ document.addEventListener('DOMContentLoaded', () => {
       errorMsg.classList.add('visible')
     }
   })
-})
+    const botonLogin = document.getElementById('open-login') as HTMLButtonElement | null
+    const modalLogin = document.getElementById('login-modal') as HTMLDivElement | null
+    const cerrarLogin = document.getElementById('close-login') as HTMLButtonElement | null
 
-// ===============================
-//  LOGIN (SELECTORES)
-// ===============================
-const btnLogin = document.querySelector<HTMLButtonElement>('#open-login');
-const modalLogin = document.querySelector<HTMLDivElement>('#login-modal');
-const overlayLogin = document.querySelector<HTMLDivElement>('#login-overlay');
-const cerrarLogin = document.querySelector<HTMLSpanElement>('#close-login');
+    const formLogin = document.getElementById('form-login') as HTMLFormElement | null
+    const inputCorreo = document.getElementById('correo') as HTMLInputElement | null
+    const inputClave = document.getElementById('clave') as HTMLInputElement | null
+    const errorLogin = document.getElementById('error-login') as HTMLParagraphElement | null    
 
-const formLogin = document.querySelector<HTMLFormElement>('#form-login');
-const inputCorreo = document.querySelector<HTMLInputElement>('#correo');
-const inputClave = document.querySelector<HTMLInputElement>('#clave');
-const errorLogin = document.querySelector<HTMLParagraphElement>('#error-login');
+     // Abrir modal de LOGIN
+  botonLogin?.addEventListener('click', () => {
+    if (!modalLogin) return
+    modalLogin.style.display = 'block'
+    overlay.style.display = 'block'        // usamos el MISMO overlay del registro
+  })
 
-// ===============================
-//  ABRIR / CERRAR MODAL LOGIN
-// ===============================
-btnLogin?.addEventListener('click', () => {
-  if (modalLogin && overlayLogin) {
-    modalLogin.style.display = 'block';
-    overlayLogin.style.display = 'block';
-  }
-});
+  // Cerrar con la X
+  cerrarLogin?.addEventListener('click', () => {
+    if (!modalLogin) return
+    modalLogin.style.display = 'none'
+    overlay.style.display = 'none'
+  })
 
-cerrarLogin?.addEventListener('click', () => {
-  if (modalLogin && overlayLogin) {
-    modalLogin.style.display = 'none';
-    overlayLogin.style.display = 'none';
-  }
-});
+  // Cerrar con el botón "Cancelar" (lleva data-dismiss="modal")
+  const botonesCancelar = document.querySelectorAll<HTMLElement>('[data-dismiss="modal"]')
+  botonesCancelar.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!modalLogin) return
+      modalLogin.style.display = 'none'
+      overlay.style.display = 'none'
+    })
+  })
 
-overlayLogin?.addEventListener('click', () => {
-  if (modalLogin && overlayLogin) {
-    modalLogin.style.display = 'none';
-    overlayLogin.style.display = 'none';
-  }
-});
-
-// ===============================
-//  LOGIN (SUBMIT AL BACKEND)
-// ===============================
-formLogin?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if (!inputCorreo || !inputClave || !errorLogin) return;
-
-  // limpiar mensaje de error
-  errorLogin.hidden = true;
-  errorLogin.textContent = '';
-
-  const correo = inputCorreo.value.trim();
-  const clave = inputClave.value;
-
-  try {
-    const res = await fetch('http://localhost:8000/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ correo, clave }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error((data as any).message || 'Error al iniciar sesión');
+  // IMPORTANTE: que el overlay cierre también el login si está abierto
+  overlay.addEventListener('click', () => {
+    modal.style.display = 'none'
+    if (modalLogin) {
+      modalLogin.style.display = 'none'
     }
+    overlay.style.display = 'none'
+  })
 
-    const data = await res.json();
+  // ===============================
+  //  SUBMIT LOGIN (llamada a la API)
+  // ===============================
+  formLogin?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    if (!inputCorreo || !inputClave || !errorLogin) return
 
-    // Guardar usuario si quieres proteger otras páginas
-    if (data.user) {
-      sessionStorage.setItem('user', JSON.stringify(data.user));
+    // limpiar mensaje de error
+    errorLogin.hidden = true
+    errorLogin.textContent = ''
+
+    const correo = inputCorreo.value.trim()
+    const clave = inputClave.value
+
+    try {
+      const res = await fetch('http://localhost:8000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({ correo, clave })
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error((data as any).message || 'Error al iniciar sesión')
+      }
+
+      const data = await res.json()
+
+      // Guardar usuario si quieres proteger otras páginas
+      if (data.user) {
+        sessionStorage.setItem('user', JSON.stringify(data.user))
+      }
+
+      // Cerrar modal de login
+      if (modalLogin) {
+        modalLogin.style.display = 'none'
+      }
+      overlay.style.display = 'none'
+      formLogin.reset()
+      errorLogin.hidden = true
+      errorLogin.textContent = ''
+
+      // Redirección según rol
+      if (data.user && data.user.is_admin) {
+        window.location.href = 'HTML/admin.html'
+      } else {
+        window.location.href = 'HTML/dashboard.html'
+      }
+    } catch (err) {
+      console.error(err)
+      errorLogin.textContent = 'Correo o contraseña incorrectos'
+      errorLogin.hidden = false
     }
-
-    // Cerrar modal de LOGIN después de loguear
-    if (modalLogin && overlayLogin) {
-      modalLogin.style.display = 'none';
-      overlayLogin.style.display = 'none';
-    }
-    formLogin.reset();
-    errorLogin.hidden = true;
-    errorLogin.textContent = '';
-
-    // Redirección según rol
-    if (data.user && data.user.is_admin) {
-      window.location.href = 'HTML/admin.html';
-    } else {
-      window.location.href = 'HTML/dashboard.html';
-    }
-  } catch (err) {
-    console.error(err);
-    errorLogin.textContent = 'Correo o contraseña incorrectos';
-    errorLogin.hidden = false;
-  }
-});
-
+  })
+  })
