@@ -65,7 +65,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Contraseña incorrecta'], 401);
         }
 
-        $token = Str::random(40);
+        $token = $usuario->createToken('token-de-login')->plainTextToken;
 
         return response()->json([
             'message' => 'Login correcto',

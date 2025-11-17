@@ -146,6 +146,10 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionStorage.setItem('user', JSON.stringify(data.user))
       }
 
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+      }
+
       // Cerrar modal de login
       if (modalLogin) {
         modalLogin.style.display = 'none'
