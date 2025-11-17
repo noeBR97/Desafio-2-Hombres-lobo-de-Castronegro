@@ -61,9 +61,9 @@ class AuthController extends Controller
         }
 
         // Comparar la clave en TEXTO con el HASH de la BD
-        if (!Hash::check($datos['clave'], $usuario->clave)) {
-            return response()->json(['message' => 'Contraseña incorrecta'], 401);
-        }
+        if (!$usuario || !Hash::check($datos['clave'], $usuario->clave)) {
+        return response()->json(['message' => 'Contraseña incorrecta'], 401);
+    }
 
         $token = Str::random(40);
 

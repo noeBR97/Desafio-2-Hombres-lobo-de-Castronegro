@@ -27,10 +27,14 @@ Route::post('/login',    [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me',     [AuthController::class, 'me']);
     Route::post('/logout',[AuthController::class, 'logout']);
+    Route::get('/usuarios', [AdminUserController::class, 'get_all']);
+    Route::get('/usuarios/{user}', [AdminUserController::class, 'get_one']);
+    Route::get('/usuarios-buscar', [AdminUserController::class, 'buscar']);
+    Route::put('/usuarios/{user}', [AdminUserController::class, 'update']);
+    Route::delete('/usuarios/{user}', [AdminUserController::class, 'delete']);
 });
 
-Route::middleware(['auth:sanctum', 'admin'])->get('/users', 
-[UsuarioController::class, 'index']);
+
 
  
 

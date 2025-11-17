@@ -23,27 +23,38 @@ export function validarPass () {
 }
 
 export async function validarUserName(): Promise<boolean> {
-    const userName = (document.getElementById('username_registro') as HTMLInputElement).value
-    const errorMsgUserName = document.getElementById('error_msg_username') as HTMLElement
-    try {
-        const respuesta = await api.post('http://localhost:8000/api/validar-username', {
-            nick: userName
-        })
+  const userNameInput = document.getElementById('username_registro') as HTMLInputElement
+  const errorMsgUserName = document.getElementById('error_msg_username') as HTMLElement
 
-        if (!respuesta.data.disponible) {
-            errorMsgUserName.textContent = 'Ese nombre de usuario ya existe.'
-            errorMsgUserName.classList.add('visible')
-            return false
-        } else {
-            errorMsgUserName.textContent = ''
-            errorMsgUserName.classList.remove('visible')
-            return true
-        }
-    } catch(e) {
-        errorMsgUserName.textContent = 'Error al contactar con el servidor.'
-        errorMsgUserName.classList.add('visible')
-        return false
+  const userName = userNameInput.value.trim()
+  const nickReg = /^(?=.*[A-Za-z]).{3,}$/
+
+  if (!nickReg.test(userName)) {
+    errorMsgUserName.textContent = 'El usuario debe tener mínimo 3 caracteres y 1 letra'
+    errorMsgUserName.classList.add('visible')
+    return false
+  }
+
+  try {
+    const respuesta = await api.post('http://localhost:8000/api/validar-username', {
+      nick: userName
+    })
+
+    if (!respuesta.data.disponible) {
+      errorMsgUserName.textContent = 'Ese nombre de usuario ya existe.'
+      errorMsgUserName.classList.add('visible')
+      return false
     }
+
+    errorMsgUserName.textContent = ''
+    errorMsgUserName.classList.remove('visible')
+    return true
+
+  } catch (e) {
+    errorMsgUserName.textContent = 'Error al contactar con el servidor.'
+    errorMsgUserName.classList.add('visible')
+    return false
+  }
 }
 
 export async function validarEmail(): Promise<boolean> {
@@ -87,17 +98,17 @@ export function limpiarFormulario() {
     }
 }
 
-export async function registrarUsuario(datos:any) {
-    try {
-        console.log(datos)
-        const res = await api.post('http://localhost:8000/api/usuarios/registrar', datos)
-        console.log(res)
-        return res.data
-    } catch (error:any) {
-        if(error.response) {
-            return error.response.data
-        }
-        console.error('Error insesperado: ', error)
-        return {ok: false};
+export async function registrarUsuario(datos: any) {
+  try {
+    const res = await api.post('http://localhost:8000/api/usuarios/registrar', datos)
+    return res.data
+  } catch (error: any) {
+    console.error("Error en registrarUsuario:", error)
+
+    if (error.response && error.response.status === 422) {
+      return null
     }
+
+    return null
+  }
 }
