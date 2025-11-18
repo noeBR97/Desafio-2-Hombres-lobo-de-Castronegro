@@ -9,15 +9,6 @@ interface Usuario {
   partidas_perdidas: number;
 }
 
-interface Partida {
-  id: number;
-  nombre_partida: string;
-  numero_jugadores: number;
-  estado: string;
-  id_creador_partida: number; 
-  created_at: string;
-}
-
 const nickUsuario = document.getElementById('nombre-usuario');
 const partidasJugadasUsuario = document.getElementById('usuario-partidas-jugadas');
 const partidasGanadasUsuario = document.getElementById('usuario-victorias-partidas');
