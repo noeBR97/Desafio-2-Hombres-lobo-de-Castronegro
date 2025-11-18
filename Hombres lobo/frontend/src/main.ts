@@ -4,7 +4,7 @@ import {
   validarUserName, 
   validarEmail, 
   registrarUsuario, 
-  limpiarFormulario } from '../public/TS/validarFormularioRegistro'
+  limpiarFormulario } from './TS/validarFormularioRegistro'
 
 document.addEventListener('DOMContentLoaded', () => {
   const formulario = document.getElementById('formulario_registro')
