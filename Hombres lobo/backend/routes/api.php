@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\PartidaController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -27,10 +28,9 @@ Route::post('/login',    [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me',     [AuthController::class, 'me']);
     Route::post('/logout',[AuthController::class, 'logout']);
+    Route::get('/partidas', [PartidaController::class, 'index']);
+    Route::post('/partidas', [PartidaController::class, 'store']);
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->get('/users', 
 [UsuarioController::class, 'index']);
-
- 
-
