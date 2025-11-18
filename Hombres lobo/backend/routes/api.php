@@ -33,8 +33,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/usuarios/{user}', [AdminUserController::class, 'update']);
     Route::delete('/usuarios/{user}', [AdminUserController::class, 'delete']);
 });
-
-
-
- 
-
