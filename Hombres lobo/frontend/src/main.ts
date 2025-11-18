@@ -4,7 +4,7 @@ import {
   validarUserName, 
   validarEmail, 
   registrarUsuario, 
-  limpiarFormulario } from './TS/validarFormularioRegistro'
+  limpiarFormulario } from '../public/TS/validarFormularioRegistro'
 
 document.addEventListener('DOMContentLoaded', () => {
   const formulario = document.getElementById('formulario_registro')
@@ -161,9 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Redirección según rol
       if (data.user && data.user.is_admin) {
-        window.location.href = 'HTML/admin.html'
+        window.location.href = '/HTML/admin.html'
       } else {
-        window.location.href = 'HTML/dashboard.html'
+        window.location.href = '/HTML/dashboard.html'
       }
     } catch (err) {
       console.error(err)

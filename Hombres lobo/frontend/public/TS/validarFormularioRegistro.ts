@@ -1,5 +1,5 @@
 import axios from 'axios'
-import api from '../api'
+import api from '../../src/api'
 
 const formulario = document.getElementById('formulario_registro') as HTMLFormElement
 const errorMsg = document.querySelector('.error_msg') as HTMLElement
