@@ -48,31 +48,32 @@ class AuthController extends Controller
     }
 // LOGIN
     public function login(Request $request)
-    {
-        $datos = $request->validate([
-            'correo' => 'required|email',
-            'clave'  => 'required|string',
-        ]);
+{
+    $cred = $request->validate([
+        'correo' => ['required', 'email'],
+        'clave'  => ['required', 'string'],
+    ]);
 
-        $usuario = User::where('correo', $datos['correo'])->first();
+    $user = User::where('correo', $cred['correo'])->first();
 
-        if (!$usuario) {
-            return response()->json(['message' => 'Correo incorrecto'], 401);
-        }
-
-        // Comparar la clave en TEXTO con el HASH de la BD
-        if (!$usuario || !Hash::check($datos['clave'], $usuario->clave)) {
-        return response()->json(['message' => 'Contraseña incorrecta'], 401);
-    }
-
-        $token = Str::random(40);
-
+    if (!$user || !Hash::check($cred['clave'], $user->clave)) {
         return response()->json([
-            'message' => 'Login correcto',
-            'token'   => $token,
-            'user'    => $usuario,
-        ], 200);
+            'ok' => false,
+            'message' => 'Correo o contraseña incorrectos',
+        ], 401);
     }
+
+    return response()->json([
+        'ok' => true,
+        'user' => [
+            'id'        => $user->id,
+            'nick'      => $user->nick,
+            'correo'    => $user->correo,
+            'rol_corp'  => $user->rol_corp
+        ]
+    ]);
+}
+
     
 
     public function perfil(Request $request)
@@ -94,7 +95,7 @@ class AuthController extends Controller
             'apellido1'           => $u->apellido1,
             'apellido2'           => $u->apellido2,
             'nick'                => $u->nick,
-            'email'               => $u->email,
+            'correo'              => $u->correo,
             'partidas_jugadas'    => $u->partidas_jugadas,
             'partidas_ganadas'    => $u->partidas_ganadas,
             'partidas_perdidas'   => $u->partidas_perdidas,

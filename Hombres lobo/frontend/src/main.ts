@@ -161,10 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
     errorLogin.textContent = ''
 
     // Redirección según rol
-    if (data.user && data.user.rol_corp) {
-      window.location.href = '/public/HTML/admin.html'
+    if (data.user.rol_corp === "admin") {
+      window.location.href = "/HTML/admin.html";
     } else {
-      window.location.href = '/public/HTML/dashboard.html'
+      window.location.href = "/HTML/dashboard.html";
     }
   } catch (err) {
     console.error(err)
