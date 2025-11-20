@@ -20,7 +20,7 @@ class AdminUserController extends Controller
             'apellido2',
             'nick',
             'correo',
-            'is_admin'
+            'rol_corp'
         )->get();
 
         return response()->json($usuarios);
@@ -35,7 +35,7 @@ class AdminUserController extends Controller
             'apellido2' => $user->apellido2,
             'nick'      => $user->nick,
             'correo'    => $user->correo,
-            'is_admin'  => (bool) $user->is_admin,
+            'rol_corp'  => (bool) $user->rol_corp,
         ]);
     }
 //Funcion para buscar usuarios por ID, correo o nick
@@ -77,7 +77,7 @@ class AdminUserController extends Controller
             'apellido2' => $user->apellido2,
             'nick'      => $user->nick,
             'correo'    => $user->correo,
-            'is_admin'  => (bool) $user->is_admin,
+            'rol_corp'  => (bool) $user->rol_corp,
         ]);
     }
 //Funcion para actualizar los campos
@@ -108,10 +108,10 @@ class AdminUserController extends Controller
                 'min:6',
             ],
 
-            'is_admin' => ['nullable', 'boolean'],
+            'rol_corp' => ['nullable', 'boolean'],
         ]);
 
-        foreach (['nombre', 'apellido1', 'apellido2', 'nick', 'correo', 'is_admin'] as $campo) {
+        foreach (['nombre', 'apellido1', 'apellido2', 'nick', 'correo', 'rol_corp'] as $campo) {
             if (array_key_exists($campo, $data)) {
                 $user->$campo = $data[$campo];
             }
@@ -132,7 +132,7 @@ class AdminUserController extends Controller
                 'apellido2' => $user->apellido2,
                 'nick'      => $user->nick,
                 'correo'    => $user->correo,
-                'is_admin'  => (bool) $user->is_admin,
+                'rol_corp'  => (bool) $user->rol_corp,
             ],
         ]);
     }
