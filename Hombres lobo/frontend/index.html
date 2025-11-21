@@ -41,7 +41,11 @@
 
               <form id="form-login">
                 <input id="correo" name="correo" type="email" placeholder="Correo" required />
-                <input id="clave" name="clave" type="password" placeholder="Contraseña" required />
+                <div class="campo-clave">
+                    <input id="clave" name="clave" type="password" placeholder="Contraseña" required />
+                    <span class="icono-ojo toggle-clave" data-input="clave"></span>
+                </div>
+
 
                 <p id="error-login" class="error_msg"></p>
 

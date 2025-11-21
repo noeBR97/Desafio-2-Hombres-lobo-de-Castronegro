@@ -1,9 +1,5 @@
 import { requerirLogin } from "./authCheck";
 
-// ===================================
-// ELEMENTOS PARA MENSAJES DE ERROR
-// ===================================
-
 const mensajeError = document.getElementById(
   "mensaje-error-api"
 ) as HTMLSpanElement | null;
@@ -16,11 +12,8 @@ function limpiarError() {
   if (mensajeError) mensajeError.textContent = "";
 }
 
-// ===================================
-// COMPROBAR LOGIN Y ROL ADMIN
-// ===================================
 document.addEventListener("DOMContentLoaded", () => {
-  const usuario = requerirLogin(); // lee 'user' y 'token' de sessionStorage
+  const usuario = requerirLogin();
 
   if (usuario.rol_corp !== "admin") {
     mostrarError("No tienes permisos de administrador.");
@@ -30,10 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   console.log("Admin logueado:", usuario.nick);
 });
-
-// ===================================
-// CONFIGURACION BASICA API + TOKEN
-// ===================================
 
 const URL_API = "http://localhost:8000/api";
 
@@ -53,6 +42,8 @@ async function peticionAutenticada(
 ): Promise<any> {
   const token = obtenerToken();
 
+  //Los 3 puntos son para que cargue los headers predeterminados,
+  //y si se le pasan nuevos los superpone
   const respuesta = await fetch(`${URL_API}${ruta}`, {
     ...opciones,
     headers: {
@@ -95,10 +86,10 @@ async function peticionAutenticada(
 }
 
 // ===================================
-// FUNCIONES DE API (RUTAS TUYAS)
+// FUNCIONES DE API
 // ===================================
 
-// GET /api/usuarios  -> lista todos
+// GET /api/usuarios
 async function cogerTodosLosUsuarios() {
   return peticionAutenticada("/usuarios", { method: "GET" });
 }
@@ -127,10 +118,6 @@ async function borrarUsuario(idONick: string) {
     method: "DELETE",
   });
 }
-
-// ===================================
-// ELEMENTOS DEL DOM
-// ===================================
 
 const botonVerUsuarios = document.getElementById("btn-mostrar-todos")!;
 const botonEncontrarUsuario = document.getElementById("btn-buscar-uno")!;
@@ -168,6 +155,125 @@ botonVerUsuarios.addEventListener("click", async () => {
     salidaResultados.textContent = "Cargando...";
     const datos = await cogerTodosLosUsuarios();
     mostrarResultados(datos);
+  } catch (error) {
+    const mensaje = (error as Error).message;
+    mostrarError(mensaje);
+    mostrarResultados({ error: mensaje });
+  }
+});
+
+// ===================================
+// BUSCAR UN USUARIO
+// ===================================
+botonEncontrarUsuario.addEventListener("click", async () => {
+  limpiarError();
+
+  const valor = entradaUsuario.value.trim();
+  idUsuarioSeleccionado = valor || null;
+
+  if (!idUsuarioSeleccionado) {
+    const mensaje = "Por favor, introduce un ID o Nick.";
+    mostrarError(mensaje);
+    mostrarResultados({ error: mensaje });
+    return;
+  }
+
+  try {
+    salidaResultados.textContent = "Buscando...";
+    const datos = await cogerUnUsuario(idUsuarioSeleccionado);
+
+    mostrarResultados(datos);
+
+    const usuario =
+      (datos && (datos.data || datos)) || {};
+
+    entradaNick.value = usuario.nick ?? "";
+    entradaCorreo.value = usuario.correo ?? "";
+  } catch (error) {
+    const mensaje = (error as Error).message;
+    mostrarError(mensaje);
+    mostrarResultados({ error: mensaje });
+    entradaNick.value = "";
+    entradaCorreo.value = "";
+  }
+});
+
+// ===================================
+// ACTUALIZAR USUARIO
+// ===================================
+botonActualizar.addEventListener("click", async (evento) => {
+  evento.preventDefault();
+  limpiarError();
+
+  const valor = entradaUsuario.value.trim();
+  idUsuarioSeleccionado = valor || null;
+
+  if (!idUsuarioSeleccionado) {
+    const mensaje = "Introduce un usuario para actualizar.";
+    mostrarError(mensaje);
+    mostrarResultados({ error: mensaje });
+    return;
+  }
+
+  const contrasena = entradaContrasena.value.trim();
+
+  const datosParaActualizar: any = {
+    nick: entradaNick.value,
+    correo: entradaCorreo.value,
+  };
+
+  if (contrasena !== "") {
+    datosParaActualizar.clave = contrasena;
+  }
+
+  try {
+    salidaResultados.textContent = "Actualizando...";
+    const datos = await actualizarUsuario(
+      idUsuarioSeleccionado,
+      datosParaActualizar
+    );
+    limpiarError();
+    mostrarResultados(datos);
+
+    entradaNick.value = "";
+    entradaCorreo.value = "";
+    entradaContrasena.value = "";
+    entradaUsuario.value = "";
+    idUsuarioSeleccionado = null;
+  } catch (error) {
+    const mensaje = (error as Error).message;
+    mostrarError(mensaje);
+    mostrarResultados({ error: mensaje });
+  }
+});
+
+// ===================================
+// BORRAR USUARIO
+// ===================================
+botonBorrarUsuario.addEventListener("click", async () => {
+  limpiarError();
+
+  const valor = entradaUsuario.value.trim();
+  idUsuarioSeleccionado = valor || null;
+
+  if (!idUsuarioSeleccionado) {
+    const mensaje = "Introduce un ID o Nick para borrar.";
+    mostrarError(mensaje);
+    mostrarResultados({ error: mensaje });
+    return;
+  }
+
+  try {
+    salidaResultados.textContent = "Borrando...";
+    const datos = await borrarUsuario(idUsuarioSeleccionado);
+    limpiarError();
+    mostrarResultados(datos);
+
+    entradaNick.value = "";
+    entradaCorreo.value = "";
+    entradaContrasena.value = "";
+    entradaUsuario.value = "";
+    idUsuarioSeleccionado = null;
   } catch (error) {
     const mensaje = (error as Error).message;
     mostrarError(mensaje);

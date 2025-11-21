@@ -30,6 +30,22 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.style.display = 'none'
   })
 
+  document
+  .querySelectorAll<HTMLSpanElement>(".toggle-clave")
+  .forEach((boton) => {
+    const idInput = boton.getAttribute("data-input");
+    if (!idInput) return;
+
+    const input = document.getElementById(idInput) as HTMLInputElement | null;
+    if (!input) return;
+
+    boton.addEventListener("click", () => {
+      const visible = input.type === "text";
+      input.type = visible ? "password" : "text";
+      boton.classList.toggle("activo", !visible);
+    });
+  });
+
   formulario?.addEventListener('submit', async (e) => {
     e.preventDefault()
     const nombre = (document.getElementById('nombre_registro') as HTMLInputElement).value
