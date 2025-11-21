@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
-class AdminUserController extends Controller
+class AdminController extends Controller
 {
  //Funcion para mostrar todos los usuarios
     public function get_all()
@@ -118,7 +118,7 @@ class AdminUserController extends Controller
         }
 
         if (!empty($data['clave'])) {
-            $user->password = Hash::make($data['clave']);
+            $user->clave = Hash::make($data['clave']);
         }
 
         $user->save();
