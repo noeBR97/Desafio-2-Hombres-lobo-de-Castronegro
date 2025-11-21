@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Hombres Lobo</title>
-    <link rel="icon" href="../img/LOGO.jpg" type="image/png">
+    <link rel="icon" href="img/LOGO.jpg" type="image/png">
     <link rel="stylesheet" href="../CSS/dashboardstyle.css">
 </head>
 <body>
@@ -26,6 +26,8 @@
                     <li id="usuario-derrotas-partidas">Derrotas: x</li>
                 </ul>
             </div>
+
+            <button class="btn-cerrar-sesion" id="btn-cerrar-sesion">Cerrar Sesión</button>
 
         </section>
 
@@ -53,7 +55,22 @@
         <p><a href="#">Reglas juego</a></p>
       </div>
     </footer>
+    <div id="modal-crear-partida" class="modal-overlay" style="display: none;">
+        <div class="modal-contenido">
+            <h2>Crear Nueva Partida</h2>
+            <p>Elige un nombre para tu sala de espera.</p>
+            
+            <form id="form-crear-partida">
+                <label for="nombre-partida-input">Nombre de la Partida:</label>
+                <input type="text" id="nombre-partida-input" required maxlength="100">
+                
+                <div class="modal-botones">
+                    <button type="button" class="btn-cancelar" id="btn-cancelar-crear">Cancelar</button>
+                    <button type="submit" class="btn-confirmar">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script type="module" src="../../src/TS/dashboard.ts"></script>
-
 </body>
 </html>

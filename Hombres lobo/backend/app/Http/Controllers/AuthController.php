@@ -57,6 +57,7 @@ class AuthController extends Controller
 
     // Buscamos al usuario por correo
     $usuario = User::where('correo', $datos['correo'])->first();
+        $token = $usuario->createToken('token-de-login')->plainTextToken;
 
     // Comprobamos que exista y que la clave coincida
     if (!$usuario || !Hash::check($datos['clave'], $usuario->clave)) {

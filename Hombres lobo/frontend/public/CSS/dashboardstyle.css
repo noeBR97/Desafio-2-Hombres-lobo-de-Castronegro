@@ -29,7 +29,7 @@ body {
     font-family: 'Crimson Text', serif; 
     color: var(--color-text-main); 
 
-    background-image: url('img/fondo-dashboard.png'); 
+    background-image: url('../img/fondo-dashboard.png'); 
     background-size: cover; 
     background-position: center center; 
     background-repeat: no-repeat; 
@@ -235,4 +235,108 @@ footer a:hover {
     footer span {
         margin-bottom: 5px;
     }
+}
+
+.btn-cerrar-sesion {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: transparent;
+  border: 2px solid var(--color-text-muted);
+  color: var(--color-text-muted);
+  font-family: 'Cinzel', serif;
+  font-size: 1em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cerrar-sesion:hover {
+  background-color: var(--color-text-muted);
+  color: var(--color-input-text); 
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; 
+}
+
+.modal-contenido {
+    background-color: var(--color-container-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    width: 90%;
+    max-width: 500px;
+    color: var(--color-text-main);
+}
+
+.modal-contenido h2 {
+    margin-top: 0;
+    color: var(--color-text-muted);
+    font-family: 'Cinzel', serif;
+}
+
+.modal-contenido label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9em;
+}
+
+.modal-contenido input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--color-input-bg);
+    color: var(--color-input-text);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 1.1em;
+    box-sizing: border-box; 
+}
+
+.modal-botones {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end; 
+    gap: 1rem;
+}
+
+.modal-botones .btn-confirmar {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: 2px solid var(--color-text-muted);
+    background-color: var(--color-button-bg);
+    color: var(--color-text-main);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    transition: background-color 0.3s ease;
+}
+
+.modal-botones .btn-confirmar:hover {
+    background-color: var(--color-button-bg-hover);
+}
+
+.modal-botones .btn-cancelar {
+    padding: 10px 20px;
+    border: 1px solid var(--color-text-muted);
+    background-color: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 1em;
+    transition: all 0.3s ease;
+}
+
+.modal-botones .btn-cancelar:hover {
+    background-color: var(--color-text-muted);
+    color: var(--color-input-text);
 }
