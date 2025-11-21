@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
 const URL_API = "http://localhost:8000/api";
 
 function obtenerToken(): string {
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("auth_token");
   if (!token) {
     mostrarError("Sesion no valida. Vuelve a iniciar sesion.");
     window.location.href = "/index.html";

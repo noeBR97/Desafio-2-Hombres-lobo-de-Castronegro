@@ -34,10 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/usuarios-buscar', [AdminController::class, 'buscar']);
     Route::put('/usuarios/{user}', [AdminController::class, 'update']);
     Route::delete('/usuarios/{user}', [AdminController::class, 'delete']);
-});
     Route::get('/partidas', [PartidaController::class, 'index']);
     Route::post('/partidas', [PartidaController::class, 'store']);
 });
-
 Route::middleware(['auth:sanctum', 'admin'])->get('/users', 
 [UsuarioController::class, 'index']);

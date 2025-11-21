@@ -162,7 +162,7 @@ formLogin?.addEventListener('submit', async (e) => {
   }
 
   // Guardar token y usuario
-  sessionStorage.setItem('token', data.token);
+  localStorage.setItem('auth_token', data.token);
   sessionStorage.setItem('user', JSON.stringify(data.user));
 
   // (opcional) Si quieres solo loguear si hay token, pero sin saltar alerta chunga
