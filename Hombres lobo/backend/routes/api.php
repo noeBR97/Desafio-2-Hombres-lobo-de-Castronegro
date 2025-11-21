@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -27,9 +28,9 @@ Route::post('/login',    [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me',     [AuthController::class, 'me']);
     Route::post('/logout',[AuthController::class, 'logout']);
-    Route::get('/usuarios', [AdminUserController::class, 'get_all']);
-    Route::get('/usuarios/{user}', [AdminUserController::class, 'get_one']);
-    Route::get('/usuarios-buscar', [AdminUserController::class, 'buscar']);
-    Route::put('/usuarios/{user}', [AdminUserController::class, 'update']);
-    Route::delete('/usuarios/{user}', [AdminUserController::class, 'delete']);
+    Route::get('/usuarios', [AdminController::class, 'get_all']);
+    Route::get('/usuarios/{user}', [AdminController::class, 'get_one']);
+    Route::get('/usuarios-buscar', [AdminController::class, 'buscar']);
+    Route::put('/usuarios/{user}', [AdminController::class, 'update']);
+    Route::delete('/usuarios/{user}', [AdminController::class, 'delete']);
 });
