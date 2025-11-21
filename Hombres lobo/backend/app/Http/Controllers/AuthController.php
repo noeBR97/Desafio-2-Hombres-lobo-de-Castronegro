@@ -49,29 +49,36 @@ class AuthController extends Controller
 // LOGIN
     public function login(Request $request)
 {
-    $cred = $request->validate([
+    // Validamos los datos que vienen del formulario
+    $datos = $request->validate([
         'correo' => ['required', 'email'],
         'clave'  => ['required', 'string'],
     ]);
 
-    $user = User::where('correo', $cred['correo'])->first();
+    // Buscamos al usuario por correo
+    $usuario = User::where('correo', $datos['correo'])->first();
 
-    if (!$user || !Hash::check($cred['clave'], $user->clave)) {
+    // Comprobamos que exista y que la clave coincida
+    if (!$usuario || !Hash::check($datos['clave'], $usuario->clave)) {
         return response()->json([
-            'ok' => false,
+            'ok'      => false,
             'message' => 'Correo o contraseña incorrectos',
         ], 401);
     }
 
+    $token = $usuario->createToken('token_login')->plainTextToken;
+
     return response()->json([
-        'ok' => true,
-        'user' => [
-            'id'        => $user->id,
-            'nick'      => $user->nick,
-            'correo'    => $user->correo,
-            'rol_corp'  => $user->rol_corp
-        ]
-    ]);
+        'ok'    => true,
+        'message' => 'Login correcto',
+        'token' => $token,
+        'user'  => [
+            'id'       => $usuario->id,
+            'nick'     => $usuario->nick,
+            'correo'   => $usuario->correo,
+            'rol_corp' => $usuario->rol_corp,
+        ],
+    ], 200);
 }
 
     

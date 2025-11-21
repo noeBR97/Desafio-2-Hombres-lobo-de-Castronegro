@@ -1,3 +1,9 @@
+import { requerirLogin } from './authCheck';
+
+document.addEventListener('DOMContentLoaded', () => {
+  requerirLogin();
+});
+
 const nickElement = document.getElementById('nombre-usuario');
 const statsPlayedElement = document.getElementById('usuario-partidas-jugadas');
 const statsWinsElement = document.getElementById('usuario-victorias-partidas');

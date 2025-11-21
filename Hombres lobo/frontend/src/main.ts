@@ -4,7 +4,7 @@ import {
   validarUserName, 
   validarEmail, 
   registrarUsuario, 
-  limpiarFormulario } from '../public/TS/validarFormularioRegistro'
+  limpiarFormulario } from './TS/validarFormularioRegistro'
 
 document.addEventListener('DOMContentLoaded', () => {
   const formulario = document.getElementById('formulario_registro')
@@ -109,10 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.style.display = 'none'
   })
 
-  // ===============================
-  //  SUBMIT LOGIN (llamada a la API)
-  // ===============================
-  formLogin?.addEventListener('submit', async (e) => {
+// ===============================
+//  SUBMIT LOGIN (llamada a la API)
+// ===============================
+formLogin?.addEventListener('submit', async (e) => {
   e.preventDefault()
   if (!inputCorreo || !inputClave || !errorLogin) return
 
@@ -125,52 +125,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const clave = inputClave.value
 
   try {
-    const res = await fetch('http://localhost:8000/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ correo, clave }),
-    })
+  const res = await fetch('http://localhost:8000/api/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ correo, clave }),
+  });
 
-    //Leemos el JSON
-    const data = await res.json().catch(() => ({} as any))
+  const data = await res.json().catch(() => ({} as any));
 
-    //Si Laravel devuelve 401 u otro error, mostramos el mensaje
-    if (!res.ok) {
-      errorLogin.textContent =
-        (data as any).message || 'Contraseña incorrecta'
-      errorLogin.hidden = false
-      errorLogin.classList.add('visible')
-      return
-    }
-
-    //guardamos el usuario
-    if (data.user) {
-      sessionStorage.setItem('user', JSON.stringify(data.user))
-    }
-
-    // Cerrar modal de login
-    if (modalLogin) {
-      modalLogin.style.display = 'none'
-    }
-    overlay.style.display = 'none'
-    formLogin.reset()
-    errorLogin.hidden = true
-    errorLogin.textContent = ''
-
-    // Redirección según rol
-    if (data.user.rol_corp === "admin") {
-      window.location.href = "/HTML/admin.html";
-    } else {
-      window.location.href = "/HTML/dashboard.html";
-    }
-  } catch (err) {
-    console.error(err)
-    // Aquí solo entramos si hay fallo de red / servidor caído
-    errorLogin.textContent = 'Error de conexión con el servidor'
-    errorLogin.hidden = false
+  // Si el backend responde con error (401, etc.)
+  if (!res.ok || !data.ok) {
+    errorLogin.textContent =
+      (data as any).message || 'Correo o contraseña incorrectos';
+    errorLogin.hidden = false;
+    errorLogin.classList.add('visible');
+    return;
   }
-})
-});
+
+  // Guardar token y usuario
+  sessionStorage.setItem('token', data.token);
+  sessionStorage.setItem('user', JSON.stringify(data.user));
+
+  // (opcional) Si quieres solo loguear si hay token, pero sin saltar alerta chunga
+  if (!data.token) {
+    console.warn('Login sin token en la respuesta');
+  }
+
+  // Cerrar modal
+  modalLogin!.style.display = 'none';
+  overlay.style.display = 'none';
+  formLogin.reset();
+  errorLogin.hidden = true;
+  errorLogin.textContent = '';
+
+  // Redirección según rol
+  if (data.user && data.user.rol_corp === 'admin') {
+    window.location.href = '/HTML/admin.html';
+  } else {
+    window.location.href = '/HTML/dashboard.html';
+  }
+} catch (err) {
+  console.error(err);
+  errorLogin.textContent = 'Error de conexión con el servidor';
+  errorLogin.hidden = false;
+  errorLogin.classList.add('visible');
+}})});
