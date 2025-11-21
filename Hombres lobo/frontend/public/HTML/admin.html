@@ -2,25 +2,26 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="../CSS/admin.css">
     <title>Panel de Administración</title>
   </head>
   <body>
-    <div id="response"></div>
     <div id="panel-admin">
       <h1>Panel de Administración</h1>
 
+    <div class="fila-boton-respuesta">
       <button id="btn-mostrar-todos">Mostrar Todos los Usuarios</button>
-
-      <hr />
-
+      <div id="response"></div>
+    </div>
+      <hr/>
       <div>
         <label for="input-usuario">ID o Nickname del Usuario:</label>
-        <input type="text" id="input-usuario" placeholder="Ej: 5 o 'admin'" />
+        <input type="text" id="input-usuario" placeholder="admin" />
         <button id="btn-buscar-uno">Buscar Usuario</button>
         <button id="btn-borrar-uno">Borrar Usuario</button>
       </div>
 
-      <hr />
+      <hr/>
 
       <div>
         <h3>Actualizar Usuario</h3>
@@ -29,9 +30,9 @@
           <label for="nickname">Nombre de usuario:</label>
           <input type="text" name="nickname" id="nickname-usuario" />
           <label for="nickname">Email:</label>
-          <input type="text" name="email" id="email-usuario" />
+          <input type="text" name="correo" id="email-usuario" />
           <label for="nickname">Contraseña:</label>
-          <input type="text" name="contraseña" id="contraseña-usuario" />
+          <input type="text" name="clave" id="contraseña-usuario" />
           <button id="actualizar-usuario">Actualizar</button>
         </form>
         <div id="contenedor-formulario-actualizar"></div>
