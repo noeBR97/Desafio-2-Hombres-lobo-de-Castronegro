@@ -30,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout',[AuthController::class, 'logout']);
     Route::get('/partidas', [PartidaController::class, 'index']);
     Route::post('/partidas', [PartidaController::class, 'store']);
+    Route::get('/partidas/{id}', [PartidaController::class, 'show']);
+    Route::post('/partidas/{id}/unirse', [PartidaController::class, 'unirse']);
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->get('/users', 

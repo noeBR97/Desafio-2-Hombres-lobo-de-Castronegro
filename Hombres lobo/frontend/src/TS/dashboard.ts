@@ -113,6 +113,34 @@ function controlBotones() {
     });
   }
 
+  if (partidasUsuario) {
+        partidasUsuario.addEventListener('click', async (e) => { 
+            const target = (e.target as HTMLElement);
+            
+            if (target.classList.contains('btn-unirse')) {
+                const gameId = target.getAttribute('data-game-id');
+                const token = localStorage.getItem('auth_token'); 
+
+                if (gameId && token) {
+                    try {
+                        await axios.post(`http://localhost:8000/api/partidas/${gameId}/unirse`, {}, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        window.location.href = `/HTML/lobby.html?id=${gameId}`;
+
+                    } catch (error) {
+                        console.error("Error al unirse a la partida:", error);
+                        alert("No se pudo unir a la partida.");
+                    }
+                }
+            }
+        });
+    }
+
 }
 
 async function cargarPartidas() {

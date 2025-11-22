@@ -11,7 +11,8 @@ class PartidaController extends Controller
 {
     public function index()
     {
-        $partidas = Partida::where('estado', 'en_espera')
+        $partidas = Partida::with('jugadores')
+                            ->where('estado', 'en_espera')
                             ->orderBy('created_at', 'desc') 
                             ->get();
 
@@ -30,9 +31,39 @@ class PartidaController extends Controller
             'nombre_partida' => $validatedData['nombre_partida'],
             'id_creador_partida' => $user->id, 
             'estado' => 'en_espera',
-            'numero_jugadores' => 0, 
+            'numero_jugadores' => 1, 
         ]);
 
-        return response()->json($partida, 201); 
+        $partida->jugadores()->attach($user->id, ['es_bot' => false, 'vivo' => true]);
+
+        $partida->load('jugadores');
+
+        return response()->json($partida, 201);
     }
+
+    public function show($id)
+    {
+        $partida = Partida::with('jugadores')->findOrFail($id);
+
+        return response()->json($partida);
+    }
+
+    public function unirse(Request $request, $id)
+    {
+        $user = Auth::user();
+        $partida = Partida::findOrFail($id);
+
+        if (!$partida->jugadores()->where('id_usuario', $user->id)->exists()) {
+            
+            $partida->jugadores()->attach($user->id, [
+                'es_bot' => false, 
+                'vivo' => true
+            ]);
+
+            $partida->increment('numero_jugadores');
+        }
+
+        return response()->json(['message' => 'Te has unido a la partida']);
+    }
+    
 }
