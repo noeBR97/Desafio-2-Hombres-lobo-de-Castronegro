@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ampliarImagen } from './utils';
 
 interface Usuario {
   nombre: string;
@@ -20,6 +21,8 @@ const modalCrearPartida = document.getElementById('modal-crear-partida');
 const formularioCrearPartida = document.getElementById('form-crear-partida');
 const modalNombrePartida = document.getElementById('nombre-partida-input') as HTMLInputElement;
 const modalCancelarPartida = document.getElementById('btn-cancelar-crear');
+const imagenPerfil = document.getElementById('avatar');
+const menuImagen = document.getElementById('avatar-menu');
 
 function cargarDatosUsuario() {
   const usuario = sessionStorage.getItem('user');
@@ -45,6 +48,15 @@ function cargarDatosUsuario() {
 }
 
 function controlBotones() {
+  if (imagenPerfil && menuImagen) {
+    imagenPerfil.addEventListener('click', () => {
+      if (menuImagen.style.display === 'block') {
+        menuImagen.style.display = 'none';
+      } else {
+        menuImagen.style.display = 'block';
+      }
+    })
+  }
 
   if (crearPartida) {
         crearPartida.addEventListener('click', () => {
@@ -113,6 +125,14 @@ function controlBotones() {
     });
   }
 
+}
+
+function subirImagen() {
+
+}
+
+function elegirAvatar() {
+  
 }
 
 async function cargarPartidas() {
