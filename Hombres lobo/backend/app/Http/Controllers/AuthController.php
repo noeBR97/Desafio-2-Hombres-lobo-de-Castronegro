@@ -76,11 +76,12 @@ class AuthController extends Controller
             'nick'     => $usuario->nick,
             'correo'   => $usuario->correo,
             'rol_corp' => $usuario->rol_corp,
+            'imagen_perfil' => $usuario->avatar_url,
         ],
     ], 200);
 }
 
-    
+
 
     public function perfil(Request $request)
     {
