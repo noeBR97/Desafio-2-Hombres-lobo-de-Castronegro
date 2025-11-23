@@ -23,6 +23,9 @@ const modalNombrePartida = document.getElementById('nombre-partida-input') as HT
 const modalCancelarPartida = document.getElementById('btn-cancelar-crear');
 const imagenPerfil = document.getElementById('avatar');
 const menuImagen = document.getElementById('avatar-menu');
+const inputImagen = document.getElementById('input-subir-imagen') as HTMLInputElement;
+const botonSubirImagen = document.querySelector('[data-action="subir-imagen"]') as HTMLButtonElement;
+const avatar = document.getElementById('avatar') as HTMLImageElement;
 
 function cargarDatosUsuario() {
   const usuario = sessionStorage.getItem('user');
@@ -34,12 +37,15 @@ function cargarDatosUsuario() {
   }
 
   try {
-    const datosUsuario: Usuario = JSON.parse(usuario);
+    const datosUsuario: Usuario & {imagen_perfil?: string} = JSON.parse(usuario);
     
     if (nickUsuario) nickUsuario.textContent = datosUsuario.nick; 
     if (partidasJugadasUsuario) partidasJugadasUsuario.textContent = `Partidas jugadas: ${datosUsuario.partidas_jugadas}`;
     if (partidasGanadasUsuario) partidasGanadasUsuario.textContent = `Victorias: ${datosUsuario.partidas_ganadas}`;
     if (partidasPerdidasUsuario) partidasPerdidasUsuario.textContent = `Derrotas: ${datosUsuario.partidas_perdidas}`;
+    if (datosUsuario.imagen_perfil && avatar) {
+      avatar.src = datosUsuario.imagen_perfil;
+    }
 
   } catch (error) {
     console.error("Error al cargar los datos del usuario:", error);
@@ -128,11 +134,59 @@ function controlBotones() {
 }
 
 function subirImagen() {
+  if (!inputImagen || !avatar || !botonSubirImagen) return;
 
+  botonSubirImagen.addEventListener('click', () => {
+    inputImagen.click();
+  })
+
+  inputImagen.addEventListener('change', async () => {
+    if (!inputImagen.files || inputImagen.files.length === 0) {
+      alert('Selecciona una imagen.')
+      return
+    }
+
+    const file = inputImagen.files[0]
+    const formData = new FormData()
+    formData.append('imagen-perfil', file)
+
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      alert('Error de sesión. Inicia sesión de nuevo.')
+      window.location.href = '/index.html'
+      return
+    }
+    try {
+      const response = await axios.post('http://localhost:8000/api/usuarios/actualizar-imagen', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+
+      const nuevaUrl = response.data.url
+      avatar.src = nuevaUrl
+      menuImagen.style.display = 'none'
+      inputImagen.value = ''
+
+      const usuarioStr = sessionStorage.getItem('user')
+      if (usuarioStr) {
+        const usuario = JSON.parse(usuarioStr)
+        usuario.imagen_perfil = nuevaUrl
+        sessionStorage.setItem('user', JSON.stringify(usuario))
+      }
+
+      console.log('Imagen subida con éxito.')
+
+    } catch (error) {
+      console.error('Error al subir la imagen:', error)
+      alert('No se pudo subir la imagen.')
+    }
+  })
 }
 
 function elegirAvatar() {
-  
+
 }
 
 async function cargarPartidas() {
@@ -175,5 +229,6 @@ async function cargarPartidas() {
 document.addEventListener('DOMContentLoaded', () => {
     cargarDatosUsuario(); 
     controlBotones();
-    cargarPartidas();   
+    cargarPartidas();
+    subirImagen()
 });
