@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { ampliarImagen } from './utils';
 
 interface Usuario {
   nombre: string;
@@ -26,6 +25,10 @@ const menuImagen = document.getElementById('avatar-menu');
 const inputImagen = document.getElementById('input-subir-imagen') as HTMLInputElement;
 const botonSubirImagen = document.querySelector('[data-action="subir-imagen"]') as HTMLButtonElement;
 const avatar = document.getElementById('avatar') as HTMLImageElement;
+const botonElegirAvatar = document.querySelector('[data-action="elegir-avatar"]') as HTMLButtonElement;
+const modalAvatares = document.getElementById('modal_avatares');
+const listaAvatares = document.getElementById('lista_avatares');
+const cerrarAvatares = document.querySelector('.cerrar') as HTMLSpanElement
 
 function cargarDatosUsuario() {
   const usuario = sessionStorage.getItem('user');
@@ -45,6 +48,8 @@ function cargarDatosUsuario() {
     if (partidasPerdidasUsuario) partidasPerdidasUsuario.textContent = `Derrotas: ${datosUsuario.partidas_perdidas}`;
     if (datosUsuario.imagen_perfil && avatar) {
       avatar.src = datosUsuario.imagen_perfil;
+    } else if ((datosUsuario as any).avatar_predefinido) {
+      avatar.src = `/avatares/${(datosUsuario as any).avatar_predefinido}`;
     }
 
   } catch (error) {
@@ -185,8 +190,42 @@ function subirImagen() {
   })
 }
 
-function elegirAvatar() {
+async function abrirSelectorAvatares() {
+  if (!modalAvatares || !listaAvatares) return
 
+  modalAvatares.style.display = 'flex'
+  listaAvatares.innerHTML = ''
+
+  const response = await axios.get('http://localhost:8000/api/usuarios/avatares')
+  const avatares = response.data
+
+  avatares.forEach((avatarUrl: string) => {
+    const img = document.createElement('img')
+    img.src = `/avatares/${avatarUrl}`
+    img.dataset.avatar = avatarUrl
+
+    img.addEventListener('click', () => elegirAvatar(avatarUrl))
+    listaAvatares.appendChild(img)
+  })
+}
+
+async function elegirAvatar(nombreAvatar: string) {
+  const token = localStorage.getItem('auth_token')
+
+  const response = await axios.post('http://localhost:8000/api/usuarios/elegir-avatar', 
+    { avatar: nombreAvatar },
+    { headers: {'Authorization': `Bearer ${token}`}})
+  
+    avatar.src = `/avatares/${nombreAvatar}`
+
+    const usuarioStr = sessionStorage.getItem('user')
+    if (usuarioStr) {
+      const usuario = JSON.parse(usuarioStr)
+      usuario.imagen_perfil = null
+      usuario.avatar_predefinido = nombreAvatar
+      sessionStorage.setItem('user', JSON.stringify(usuario))
+    }
+  modalAvatares!.style.display = 'none'
 }
 
 async function cargarPartidas() {
@@ -231,4 +270,10 @@ document.addEventListener('DOMContentLoaded', () => {
     controlBotones();
     cargarPartidas();
     subirImagen()
+
+    botonElegirAvatar?.addEventListener('click', abrirSelectorAvatares)
+
+    cerrarAvatares?.addEventListener('click', () => {
+      if(modalAvatares) modalAvatares.style.display = 'none'
+    })
 });

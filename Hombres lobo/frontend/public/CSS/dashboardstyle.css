@@ -120,6 +120,25 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.avatar_grid {
+    display: grid;
+    grid-template-columns: repeat(4, 80px);
+    gap: 15px;
+}
+
+.avatar_grid img {
+    width: 80px;
+    height: 80px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    transition: .2s;
+}
+
+.avatar_grid img:hover {
+    border-color: var(--color-text-muted);
+}
+
 .nick {
     display: block;
     font-size: 1.8em; 

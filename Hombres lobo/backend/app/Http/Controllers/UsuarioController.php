@@ -68,6 +68,37 @@ class UsuarioController extends Controller
         return response()->json(['error' => 'No se recibió ningún archivo.'], 400);
     }
 
+    public function listaAvatares() {
+        $avatares = [
+            'avatar-aldeano.png',
+            'avatar-bruja.png',
+            'avatar-cazador.png',
+            'avatar-cupido.png',
+            'avatar-ladron.png',
+            'avatar-lobo.png',
+            'avatar-nina.png',
+            'avatar-vidente.png',
+            'avatar-oficial.jpg',
+            'AVATAR-USUARIO.png'
+        ];
+
+        return response() -> json($avatares,200);
+    }
+
+    public function elegirAvatar(Request $request) {
+        $request ->validate([
+            'avatar' => 'required|string'
+        ]);
+        $usuario = $request->user();
+
+        $usuario->avatar_predefinido = $request->avatar;
+        $usuario->avatar_url = null;
+        $usuario->save();
+
+        return response()->json(['ok' => true,
+                                'nombre-avatar' => $usuario->avatar_predefinido], 200);
+    }
+
     public function index()
     {
         // Devuelve lista paginada y sin campos sensibles (password ya está oculto por defecto)
