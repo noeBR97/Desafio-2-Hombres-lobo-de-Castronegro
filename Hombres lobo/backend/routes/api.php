@@ -36,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/usuarios/{user}', [AdminController::class, 'delete']);
     Route::get('/partidas', [PartidaController::class, 'index']);
     Route::post('/partidas', [PartidaController::class, 'store']);
+    Route::post('/usuarios/actualizar-imagen', [UsuarioController::class, 'actualizarImagenPerfil']);
 });
-Route::middleware(['auth:sanctum', 'admin'])->get('/users', 
+Route::middleware(['auth:sanctum', 'admin'])->get('/users',
 [UsuarioController::class, 'index']);
