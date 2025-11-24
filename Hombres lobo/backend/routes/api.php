@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\PartidaController;
+use Illuminate\Support\Facades\Broadcast; 
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -32,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/partidas', [PartidaController::class, 'store']);
     Route::get('/partidas/{id}', [PartidaController::class, 'show']);
     Route::post('/partidas/{id}/unirse', [PartidaController::class, 'unirse']);
+
+    Broadcast::routes();
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->get('/users', 

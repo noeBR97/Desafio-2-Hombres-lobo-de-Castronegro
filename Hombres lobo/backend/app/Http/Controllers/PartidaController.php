@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Partida; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Events\JugadorUnido;
 
 class PartidaController extends Controller
 {
@@ -61,6 +62,7 @@ class PartidaController extends Controller
             ]);
 
             $partida->increment('numero_jugadores');
+            event(new JugadorUnido($user, $partida->id));
         }
 
         return response()->json(['message' => 'Te has unido a la partida']);

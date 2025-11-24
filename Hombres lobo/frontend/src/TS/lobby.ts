@@ -1,4 +1,13 @@
 import axios from 'axios';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+(window as any).Pusher = Pusher;
+
+interface User {
+    id: number;
+    nick: string;
+}
 
 interface Game {
     id: number;
@@ -24,6 +33,60 @@ const btnIniciar = document.getElementById('btn-iniciar');
 function getGameIdFromUrl(): string | null {
     const params = new URLSearchParams(window.location.search);
     return params.get('id');
+}
+
+function conectarWebSockets(gameId: string, token: string) {
+    console.log(`🔌 Iniciando conexión WebSocket para la partida ${gameId}...`);
+
+    const echo = new Echo({
+        broadcaster: 'reverb',
+        key: 'wapw1chslaoar5p0jt4i', 
+        wsHost: 'localhost',         
+        wsPort: 8085,                
+        wssPort: 8085,
+        forceTLS: false,
+        enabledTransports: ['ws', 'wss'],
+        authEndpoint: 'http://localhost:8000/api/broadcasting/auth',
+        auth: {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/json'
+            }
+        }
+    });
+
+    echo.private(`lobby.${gameId}`)
+        .listen('PlayerJoined', (e: any) => {
+            console.log("⚡ ¡Nuevo jugador detectado!", e.user);
+            
+            agregarJugadorVisualmente(e.user);
+        });
+}
+
+function agregarJugadorVisualmente(jugador: User) {
+    if (!listaJugadores) return;
+
+    const yaExiste = Array.from(listaJugadores.children).some(li => 
+        li.innerHTML.includes(`>${jugador.nick}<`)
+    );
+    if (yaExiste) return;
+
+    const huecoVacio = listaJugadores.querySelector('.slot-jugador.empty');
+    
+    if (huecoVacio) {
+        huecoVacio.className = 'slot-jugador'; 
+        huecoVacio.innerHTML = `<strong>${jugador.nick}</strong>`;
+    } else {
+        const li = document.createElement('li');
+        li.className = 'slot-jugador';
+        li.innerHTML = `<strong>${jugador.nick}</strong>`;
+        listaJugadores.appendChild(li);
+    }
+
+    if (contadorJugadores) {
+        const actual = parseInt(contadorJugadores.textContent?.split('/')[0] || "0");
+        contadorJugadores.textContent = `${actual + 1}/30`;
+    }
 }
 
 async function cargarDatosPartida() {
@@ -53,6 +116,8 @@ async function cargarDatosPartida() {
         const partida = response.data;
         
         actualizarInterfaz(partida);
+
+        conectarWebSockets(gameId, token);
 
         checkSiSoyCreador(partida.id_creador_partida);
 
