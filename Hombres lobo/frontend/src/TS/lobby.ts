@@ -36,7 +36,7 @@ function getGameIdFromUrl(): string | null {
 }
 
 function conectarWebSockets(gameId: string, token: string) {
-    console.log(`🔌 Iniciando conexión WebSocket para la partida ${gameId}...`);
+    console.log(`Iniciando conexión WebSocket para la partida ${gameId}...`);
 
     const echo = new Echo({
         broadcaster: 'reverb',
@@ -56,8 +56,8 @@ function conectarWebSockets(gameId: string, token: string) {
     });
 
     echo.private(`lobby.${gameId}`)
-        .listen('PlayerJoined', (e: any) => {
-            console.log("⚡ ¡Nuevo jugador detectado!", e.user);
+        .listen('.JugadorUnido', (e: any) => {
+            console.log("¡Nuevo jugador detectado!", e.user);
             
             agregarJugadorVisualmente(e.user);
         });

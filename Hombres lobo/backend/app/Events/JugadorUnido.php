@@ -35,7 +35,12 @@ class JugadorUnido implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel('lobby.' . $this->gameId),
+            new PrivateChannel('lobby.' . $this->gameId),
         ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'JugadorUnido';
     }
 }
