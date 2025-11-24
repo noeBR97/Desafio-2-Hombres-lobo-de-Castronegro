@@ -99,6 +99,27 @@ class UsuarioController extends Controller
                                 'nombre-avatar' => $usuario->avatar_predefinido], 200);
     }
 
+    public function update(Request $request) {
+        $usuario = $request->user();
+
+        $data = $request->validate([
+            'nick' => 'string|max:50|unique:users,nick,'.$usuario->id,
+            'clave' => 'min:8',
+        ]);
+
+        if (isset($data['nick'])) {
+            $usuario->nick = $data['nick'];
+        }
+
+        if (isset($data['clave']) && $data['clave'] != null) {
+            $usuario->clave = bcrypt($data['clave']);
+        }
+
+        $usuario->save();
+
+        return response()->json(['mensaje'=> 'Usuario actualizado correctamente'], 200);
+    }
+
     public function index()
     {
         // Devuelve lista paginada y sin campos sensibles (password ya está oculto por defecto)
