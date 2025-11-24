@@ -20,10 +20,11 @@
                         <div class="avatar-menu" id="avatar-menu">
                             <button data-action="subir-imagen">Subir imagen</button>
                             <button data-action="elegir-avatar">Elegir avatar</button>
+                            <button data-action="editar-usuario">Editar Perfil</button>
                         </div>  
 
                         <div id="modal_avatares" class="modal-overlay">
-                            <div class="contenido_modal">
+                            <div class="modal-contenido">
                                 <span class="cerrar">&times;</span>
                                 <h3>Elige tu avatar</h3>
                                 <div id="lista_avatares" class="avatar_grid"></div>
@@ -84,6 +85,16 @@
                     <button type="submit" class="btn-confirmar">Confirmar</button>
                 </div>
             </form>
+        </div>
+    </div>
+    <div class="editar-usuario">
+        <div class="modal-contenido">
+            <input type="text" id="nuevo-nick" placeholder="Nuevo nombre de usuario">
+            <input type="password" id="nueva-clave" placeholder="Nueva contraseña">
+            <div class="modal-botones">
+                <button type="submit" class="btn-confirmar" id="btn-guardar-cambios">Guardar Cambios</button>
+                <button type="button" class="btn-cancelar" id="btn-cancelar-actualizar">Cancelar</button>
+            </div>
         </div>
     </div>
     <script type="module" src="../../src/TS/dashboard.ts"></script>

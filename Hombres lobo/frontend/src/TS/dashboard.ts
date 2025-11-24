@@ -31,6 +31,11 @@ const botonElegirAvatar = document.querySelector('[data-action="elegir-avatar"]'
 const modalAvatares = document.getElementById('modal_avatares');
 const listaAvatares = document.getElementById('lista_avatares');
 const cerrarAvatares = document.querySelector('.cerrar') as HTMLSpanElement
+const botonGuardarCambios = document.getElementById('btn-guardar-cambios');
+const botonEditarUsuario = document.querySelector('[data-action="editar-usuario"]') as HTMLButtonElement;
+const botonCancelarActualizar = document.getElementById('btn-cancelar-actualizar') as HTMLButtonElement;
+const nuevoNickInput = document.getElementById('nuevo-nick') as HTMLInputElement;
+const nuevaClaveInput = document.getElementById('nueva-clave') as HTMLInputElement;
 
 async function cargarDatosUsuario() {
   const token = localStorage.getItem('auth_token');
@@ -247,6 +252,72 @@ async function elegirAvatar(nombreAvatar: string) {
   }
 }
 
+function editarUsuario() {
+  if (!botonGuardarCambios) return;
+
+  botonGuardarCambios.addEventListener('click', async () => {
+    const nuevoNick = nuevoNickInput.value.trim();
+    const nuevaClave = nuevaClaveInput.value.trim();
+    if (!nuevoNick && !nuevaClave){
+      alert('Por favor, ingresa un nuevo nick o una nueva clave.');
+      return;
+    } 
+
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      alert('Error de sesión. Inicia sesión de nuevo.');
+      window.location.href = '/index.html';
+      return;
+    }
+
+    try {
+      const data: any = {};
+      if (nuevoNick) data.nick = nuevoNick;
+      if (nuevaClave) data.password = nuevaClave; 
+
+      const response = await axios.put('http://localhost:8000/api/usuario/update', 
+      {
+        nick: nuevoNickInput ? nuevoNickInput.value : undefined,
+        password: nuevaClaveInput ? nuevaClaveInput.value : undefined
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.data.usuario) {
+        alert('Datos del usuario actualizados con éxito.');
+        const usuarioStr = sessionStorage.getItem('user');
+        if (usuarioStr) {
+          const usuario = JSON.parse(usuarioStr);
+          if (response.data.usuario.nick) usuario.nick = response.data.usuario.nick;
+          sessionStorage.setItem('user', JSON.stringify(usuario));
+        }
+        cargarDatosUsuario();
+      }
+      nuevoNickInput.value = '';
+      nuevaClaveInput.value = '';
+    } catch (error) {
+      console.error('Error al actualizar los datos del usuario:', error);
+    }
+  })
+}
+
+function mostrarFormularioEditarUsuario() {
+  const divEditarUsuario = document.querySelector('.editar-usuario') as HTMLDivElement;
+
+  botonEditarUsuario.addEventListener('click', () => {
+    divEditarUsuario.style.display = 'flex';
+    menuImagen.style.display = 'none';
+  })
+  
+  botonCancelarActualizar.addEventListener('click', () => {
+    divEditarUsuario.style.display = 'none';
+    if (nuevoNickInput) nuevoNickInput.value = '';
+    if (nuevaClaveInput) nuevaClaveInput.value = '';
+  })
+}
+
 async function cargarPartidas() {
   const token = localStorage.getItem('auth_token');
   if (!token) {
@@ -289,6 +360,9 @@ document.addEventListener('DOMContentLoaded', () => {
     controlBotones();
     cargarPartidas();
     subirImagen()
+
+    mostrarFormularioEditarUsuario();
+    botonEditarUsuario?.addEventListener('click', editarUsuario);
 
     botonElegirAvatar?.addEventListener('click', abrirSelectorAvatares)
 
