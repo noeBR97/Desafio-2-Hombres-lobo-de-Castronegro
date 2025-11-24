@@ -88,6 +88,10 @@ h1, h2, h3, h4, h5, h6 {
     display: none;
 }
 
+.contenido_modal {
+    position: relative;
+}
+
 .avatar-menu {
     position: absolute;
     top: 130px;
@@ -137,6 +141,22 @@ h1, h2, h3, h4, h5, h6 {
 
 .avatar_grid img:hover {
     border-color: var(--color-text-muted);
+}
+
+.cerrar {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.cerrar:hover {
+    color: var(--color-button-bg-hover);
 }
 
 .nick {

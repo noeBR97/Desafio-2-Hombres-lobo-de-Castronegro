@@ -49,7 +49,7 @@ function cargarDatosUsuario() {
     if (datosUsuario.imagen_perfil && avatar) {
       avatar.src = datosUsuario.imagen_perfil;
     } else if ((datosUsuario as any).avatar_predefinido) {
-      avatar.src = `/avatares/${(datosUsuario as any).avatar_predefinido}`;
+      avatar.src = `${window.location.origin}/avatares/${(datosUsuario as any).avatar_predefinido}`;
     }
 
   } catch (error) {
@@ -197,14 +197,14 @@ async function abrirSelectorAvatares() {
   listaAvatares.innerHTML = ''
 
   const response = await axios.get('http://localhost:8000/api/usuarios/avatares')
-  const avatares = response.data
+  const avatares: string[] = response.data
 
-  avatares.forEach((avatarUrl: string) => {
+  avatares.forEach((avatarNombre: string) => {
     const img = document.createElement('img')
-    img.src = `/avatares/${avatarUrl}`
-    img.dataset.avatar = avatarUrl
+    img.src = `${window.location.origin}/avatares/${avatarNombre}`
+    img.dataset.avatar = avatarNombre
 
-    img.addEventListener('click', () => elegirAvatar(avatarUrl))
+    img.addEventListener('click', () => elegirAvatar(avatarNombre))
     listaAvatares.appendChild(img)
   })
 }
@@ -216,7 +216,7 @@ async function elegirAvatar(nombreAvatar: string) {
     { avatar: nombreAvatar },
     { headers: {'Authorization': `Bearer ${token}`}})
   
-    avatar.src = `/avatares/${nombreAvatar}`
+    avatar.src = `${window.location.origin}/avatares/${nombreAvatar}`
 
     const usuarioStr = sessionStorage.getItem('user')
     if (usuarioStr) {
@@ -270,6 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     controlBotones();
     cargarPartidas();
     subirImagen()
+    modalAvatares!.style.display = 'none'
 
     botonElegirAvatar?.addEventListener('click', abrirSelectorAvatares)
 
