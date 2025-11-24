@@ -106,7 +106,17 @@ class AuthController extends Controller
             'partidas_jugadas'    => $u->partidas_jugadas,
             'partidas_ganadas'    => $u->partidas_ganadas,
             'partidas_perdidas'   => $u->partidas_perdidas,
+            'avatar_url'          => $u->avatar_url,
+            'avatar_predefinido'  => $u->avatar_predefinido,
             'created_at'          => $u->created_at,
             'updated_at'          => $u->updated_at,
         ];
-    }}
+    }
+
+    public function me(Request $request) {
+        $usuario = $request->user();
+        return response()->json([
+            'usuario' => $this->mapUsuario($usuario),
+        ]);
+    }
+}
