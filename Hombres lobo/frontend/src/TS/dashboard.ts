@@ -7,6 +7,8 @@ interface Usuario {
   partidas_jugadas: number;
   partidas_ganadas: number;
   partidas_perdidas: number;
+  avatar_url?: string | null;
+  avatar_predefinido?: string | null;
 }
 
 const nickUsuario = document.getElementById('nombre-usuario');
@@ -30,28 +32,36 @@ const modalAvatares = document.getElementById('modal_avatares');
 const listaAvatares = document.getElementById('lista_avatares');
 const cerrarAvatares = document.querySelector('.cerrar') as HTMLSpanElement
 
-function cargarDatosUsuario() {
-  const usuario = sessionStorage.getItem('user');
-
-  if (!usuario) {
-    console.error("No hay usuario en la sesión. Redirigiendo al inicio.");
+async function cargarDatosUsuario() {
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    console.error("No se encontró token, redirigiendo al inicio.");
     window.location.href = '/index.html'; 
     return;
   }
 
   try {
-    const datosUsuario: Usuario & {imagen_perfil?: string} = JSON.parse(usuario);
+    const response = await axios.get('http://localhost:8000/api/me', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+      }
+    })
+
+    const datosUsuario: Usuario = response.data.usuario;
+
+    sessionStorage.setItem('user', JSON.stringify(datosUsuario))
     
     if (nickUsuario) nickUsuario.textContent = datosUsuario.nick; 
     if (partidasJugadasUsuario) partidasJugadasUsuario.textContent = `Partidas jugadas: ${datosUsuario.partidas_jugadas}`;
     if (partidasGanadasUsuario) partidasGanadasUsuario.textContent = `Victorias: ${datosUsuario.partidas_ganadas}`;
     if (partidasPerdidasUsuario) partidasPerdidasUsuario.textContent = `Derrotas: ${datosUsuario.partidas_perdidas}`;
-    if (datosUsuario.imagen_perfil && avatar) {
-      avatar.src = datosUsuario.imagen_perfil;
-    } else if ((datosUsuario as any).avatar_predefinido) {
-      avatar.src = `${window.location.origin}/avatares/${(datosUsuario as any).avatar_predefinido}`;
+    if (avatar) {
+      if (datosUsuario.avatar_url) {
+        avatar.src = datosUsuario.avatar_url;
+      } else if(datosUsuario.avatar_predefinido) {
+        avatar.src = `${window.location.origin}/avatares/${datosUsuario.avatar_predefinido}`;
+      }
     }
-
   } catch (error) {
     console.error("Error al cargar los datos del usuario:", error);
     window.location.href = '/index.html'; 
@@ -196,7 +206,8 @@ async function abrirSelectorAvatares() {
   modalAvatares.style.display = 'flex'
   listaAvatares.innerHTML = ''
 
-  const response = await axios.get('http://localhost:8000/api/usuarios/avatares')
+  try {
+    const response = await axios.get('http://localhost:8000/api/usuarios/avatares')
   const avatares: string[] = response.data
 
   avatares.forEach((avatarNombre: string) => {
@@ -207,25 +218,33 @@ async function abrirSelectorAvatares() {
     img.addEventListener('click', () => elegirAvatar(avatarNombre))
     listaAvatares.appendChild(img)
   })
+  } catch (error) {
+    console.error('Error al cargar los avatares:', error)
+  }
 }
 
 async function elegirAvatar(nombreAvatar: string) {
   const token = localStorage.getItem('auth_token')
+  if (!token) return window.location.href = '/index.html'
 
-  const response = await axios.post('http://localhost:8000/api/usuarios/elegir-avatar', 
+  try {
+    await axios.post('http://localhost:8000/api/usuarios/elegir-avatar', 
     { avatar: nombreAvatar },
     { headers: {'Authorization': `Bearer ${token}`}})
-  
+
     avatar.src = `${window.location.origin}/avatares/${nombreAvatar}`
+    modalAvatares!.style.display = 'none'
 
     const usuarioStr = sessionStorage.getItem('user')
     if (usuarioStr) {
       const usuario = JSON.parse(usuarioStr)
-      usuario.imagen_perfil = null
       usuario.avatar_predefinido = nombreAvatar
+      usuario.imagen_perfil = null
       sessionStorage.setItem('user', JSON.stringify(usuario))
     }
-  modalAvatares!.style.display = 'none'
+  } catch (error) {
+    console.error('Error al elegir el avatar:', error)
+  }
 }
 
 async function cargarPartidas() {
@@ -270,7 +289,6 @@ document.addEventListener('DOMContentLoaded', () => {
     controlBotones();
     cargarPartidas();
     subirImagen()
-    modalAvatares!.style.display = 'none'
 
     botonElegirAvatar?.addEventListener('click', abrirSelectorAvatares)
 
