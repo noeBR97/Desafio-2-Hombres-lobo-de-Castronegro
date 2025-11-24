@@ -133,7 +133,6 @@ h1, h2, h3, h4, h5, h6 {
 .avatar_grid img {
     width: 80px;
     height: 80px;
-    cursor: pointer;
     border: 2px solid transparent;
     border-radius: 50%;
     transition: .2s;
@@ -354,6 +353,7 @@ footer a:hover {
     justify-content: center;
     align-items: center;
     z-index: 1000; 
+    display: none;
 }
 
 .modal-contenido {
