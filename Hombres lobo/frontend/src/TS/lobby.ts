@@ -91,7 +91,7 @@ function agregarJugadorVisualmente(jugador: User) {
 
 async function cargarDatosPartida() {
     const gameId = getGameIdFromUrl();
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
 
     if (!gameId) {
         alert("No se especificó ninguna partida.");

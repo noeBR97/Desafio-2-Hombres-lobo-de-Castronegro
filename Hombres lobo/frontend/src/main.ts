@@ -142,14 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json()
 
       // Guardar usuario si quieres proteger otras páginas
-      if (data.user) {
+      if (data.user && data.token) {
         sessionStorage.setItem('user', JSON.stringify(data.user))
+        sessionStorage.setItem('auth_token', data.token)
       }
-
-      if (data.token) {
-        localStorage.setItem('auth_token', data.token);
-      }
-
+      
       // Cerrar modal de login
       if (modalLogin) {
         modalLogin.style.display = 'none'

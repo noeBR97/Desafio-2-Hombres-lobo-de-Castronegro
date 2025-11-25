@@ -26,7 +26,7 @@ const modalNombrePartida = document.getElementById('nombre-partida-input') as HT
 const modalCancelarPartida = document.getElementById('btn-cancelar-crear');
 
 function conectarDashboardWebSocket() {
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     if (!token) return;
 
     const echo = new Echo({
@@ -104,7 +104,7 @@ function controlBotones() {
                 return;
             }
 
-            const token = localStorage.getItem('auth_token');
+            const token = sessionStorage.getItem('auth_token');
             if (!token) {
                 alert("Error de sesión. Por favor, vuelve a iniciar sesión.");
                 window.location.href = '/index.html';
@@ -139,8 +139,7 @@ function controlBotones() {
   if (cerrarSesion) {
     cerrarSesion.addEventListener('click', () => {
       console.log('Cerrando sesión...');
-      sessionStorage.removeItem('user');
-      localStorage.removeItem('auth_token'); 
+      sessionStorage.clear();
       window.location.href = '/index.html'; 
     });
   }
@@ -151,7 +150,7 @@ function controlBotones() {
             
             if (target.classList.contains('btn-unirse')) {
                 const gameId = target.getAttribute('data-game-id');
-                const token = localStorage.getItem('auth_token'); 
+                const token = sessionStorage.getItem('auth_token'); 
 
                 if (gameId && token) {
                     try {
@@ -176,7 +175,7 @@ function controlBotones() {
 }
 
 async function cargarPartidas() {
-  const token = localStorage.getItem('auth_token');
+  const token = sessionStorage.getItem('auth_token');
   if (!token) {
     console.error("No se encontró token, no se pueden cargar partidas.");
     return;
