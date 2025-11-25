@@ -23,10 +23,12 @@
                 <input type="text" id="apellido2_registro" name="apellido2_registro" placeholder="Segundo apellido">
                 <input type="text" id="username_registro" name="username_registro" placeholder="Nombre de usuario" required/>
                 <small id="error_msg_username" class="error_msg"></small>
-                <input type="password" id="password_registro" name="password_registro" placeholder="Contraseña" required />
-                <span class="icono-ojo toggle-clave" data-input="clave"></span>
-                <small id="error_msg_pass" class="error_msg"></small>
+                <div class="campo-clave">
+                    <input type="password" id="password_registro" name="password_registro" placeholder="Contraseña" required />
+                <span class="icono-ojo toggle-clave" data-input="password_registro"></span>
+                </div>
                 
+                <small id="error_msg_pass" class="error_msg"></small>
                 <input type="email" id="email" name="email" placeholder="Email" required>
                 <small id="error_msg_email" class="error_msg"></small>
                 <button type="submit">Registrar</button>

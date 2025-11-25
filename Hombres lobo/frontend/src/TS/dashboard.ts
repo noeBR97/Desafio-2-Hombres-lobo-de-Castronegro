@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { validarPass } from './validarFormularioRegistro';
 
 interface Usuario {
   nombre: string;
@@ -38,6 +39,7 @@ const nuevoNickInput = document.getElementById('nuevo-nick') as HTMLInputElement
 const nuevaClaveInput = document.getElementById('nueva-clave') as HTMLInputElement;
 const botonSelectRol = document.getElementById('rol-select') as HTMLSelectElement;
 const listaEstadisticasRol = document.getElementById('estadisticas-rol-list') as HTMLUListElement;
+const divEditarUsuario = document.getElementById('editar-usuario') as HTMLDivElement;
 
 async function cargarDatosUsuario() {
   const token = localStorage.getItem('auth_token');
@@ -265,6 +267,8 @@ function editarUsuario() {
       return;
     } 
 
+    //TODO: Validar la nueva clave. Reestructurar validarPass para meter la nueva clave por parametro
+
     const token = localStorage.getItem('auth_token');
     if (!token) {
       alert('Error de sesión. Inicia sesión de nuevo.');
@@ -304,8 +308,6 @@ function editarUsuario() {
 }
 
 function mostrarFormularioEditarUsuario() {
-  const divEditarUsuario = document.getElementById('editar-usuario') as HTMLDivElement;
-
   botonEditarUsuario.addEventListener('click', () => {
     divEditarUsuario.style.display = 'flex';
     menuImagen.style.display = 'none';
@@ -379,4 +381,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
     })
+
+    document.querySelectorAll<HTMLSpanElement>(".toggle-clave")
+    .forEach((boton) => {
+    const idInput = boton.getAttribute("data-input");
+    if (!idInput) return;
+
+    const input = document.getElementById(idInput) as HTMLInputElement | null;
+    if (!input) return;
+
+    boton.addEventListener("click", () => {
+      const visible = input.type === "text";
+      input.type = visible ? "password" : "text";
+      boton.classList.toggle("activo", !visible);
+    });
+  });
 });
