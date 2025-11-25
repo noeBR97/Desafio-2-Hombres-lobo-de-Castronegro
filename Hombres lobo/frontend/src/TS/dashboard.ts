@@ -36,6 +36,8 @@ const botonEditarUsuario = document.querySelector('[data-action="editar-usuario"
 const botonCancelarActualizar = document.getElementById('btn-cancelar-actualizar') as HTMLButtonElement;
 const nuevoNickInput = document.getElementById('nuevo-nick') as HTMLInputElement;
 const nuevaClaveInput = document.getElementById('nueva-clave') as HTMLInputElement;
+const botonSelectRol = document.getElementById('rol-select') as HTMLSelectElement;
+const listaEstadisticasRol = document.getElementById('estadisticas-rol-list') as HTMLUListElement;
 
 async function cargarDatosUsuario() {
   const token = localStorage.getItem('auth_token');
@@ -366,5 +368,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cerrarAvatares?.addEventListener('click', () => {
       if(modalAvatares) modalAvatares.style.display = 'none'
+    })
+
+    botonSelectRol?.addEventListener('change', () => {
+      const rolSeleccionado = botonSelectRol.value;
+      if (rolSeleccionado) {
+        listaEstadisticasRol.style.display = 'block';
+      } else {
+        listaEstadisticasRol.innerHTML = '';
+      }
+
     })
 });
