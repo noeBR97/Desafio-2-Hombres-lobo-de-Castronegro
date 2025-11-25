@@ -7,6 +7,7 @@ use App\Models\Partida;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Events\JugadorUnido;
+use App\Events\ActualizarListaPartidas;
 
 class PartidaController extends Controller
 {
@@ -38,6 +39,8 @@ class PartidaController extends Controller
         $partida->jugadores()->attach($user->id, ['es_bot' => false, 'vivo' => true]);
 
         $partida->load('jugadores');
+        
+        event(new ActualizarListaPartidas($partida));
 
         return response()->json($partida, 201);
     }

@@ -1,4 +1,8 @@
 import axios from 'axios';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+(window as any).Pusher = Pusher;
 
 interface Usuario {
   nombre: string;
@@ -20,6 +24,34 @@ const modalCrearPartida = document.getElementById('modal-crear-partida');
 const formularioCrearPartida = document.getElementById('form-crear-partida');
 const modalNombrePartida = document.getElementById('nombre-partida-input') as HTMLInputElement;
 const modalCancelarPartida = document.getElementById('btn-cancelar-crear');
+
+function conectarDashboardWebSocket() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    const echo = new Echo({
+        broadcaster: 'reverb',
+        key: 'wapw1chslaoar5p0jt4i',
+        wsHost: 'localhost',
+        wsPort: 8085,
+        wssPort: 8085,
+        forceTLS: false,
+        enabledTransports: ['ws', 'wss'],
+        authEndpoint: 'http://localhost:8000/api/broadcasting/auth',
+        auth: {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/json'
+            }
+        }
+    });
+
+    echo.channel('dashboard')
+        .listen('.ActualizarListaPartidas', (e: any) => {
+            console.log('Nueva partida detectada:', e.partida);
+            cargarPartidas(); 
+        });
+}
 
 function cargarDatosUsuario() {
   const usuario = sessionStorage.getItem('user');
@@ -183,5 +215,6 @@ async function cargarPartidas() {
 document.addEventListener('DOMContentLoaded', () => {
     cargarDatosUsuario(); 
     controlBotones();
-    cargarPartidas();   
+    cargarPartidas();
+    conectarDashboardWebSocket();
 });
