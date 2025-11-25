@@ -273,17 +273,13 @@ function editarUsuario() {
     try {
       const data: any = {};
       if (nuevoNick) data.nick = nuevoNick;
-      if (nuevaClave) data.password = nuevaClave; 
+      if (nuevaClave) data.clave = nuevaClave; 
 
-      const response = await axios.put('http://localhost:8000/api/usuario/update', 
-      {
-        nick: nuevoNickInput ? nuevoNickInput.value : undefined,
-        password: nuevaClaveInput ? nuevaClaveInput.value : undefined
-      },
-      {
+      const response = await axios.put('http://localhost:8000/api/usuario/update', data, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
       if (response.data.usuario) {
         alert('Datos del usuario actualizados con éxito.');
@@ -297,6 +293,8 @@ function editarUsuario() {
       }
       nuevoNickInput.value = '';
       nuevaClaveInput.value = '';
+      const divEditarUsuario = document.getElementById('editar-usuario') as HTMLDivElement;
+      divEditarUsuario.style.display = 'none';
     } catch (error) {
       console.error('Error al actualizar los datos del usuario:', error);
     }
@@ -304,7 +302,7 @@ function editarUsuario() {
 }
 
 function mostrarFormularioEditarUsuario() {
-  const divEditarUsuario = document.querySelector('.editar-usuario') as HTMLDivElement;
+  const divEditarUsuario = document.getElementById('editar-usuario') as HTMLDivElement;
 
   botonEditarUsuario.addEventListener('click', () => {
     divEditarUsuario.style.display = 'flex';
@@ -313,8 +311,8 @@ function mostrarFormularioEditarUsuario() {
   
   botonCancelarActualizar.addEventListener('click', () => {
     divEditarUsuario.style.display = 'none';
-    if (nuevoNickInput) nuevoNickInput.value = '';
-    if (nuevaClaveInput) nuevaClaveInput.value = '';
+    nuevoNickInput.value = '';
+    nuevaClaveInput.value = '';
   })
 }
 
@@ -362,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
     subirImagen()
 
     mostrarFormularioEditarUsuario();
-    botonEditarUsuario?.addEventListener('click', editarUsuario);
+    editarUsuario();
 
     botonElegirAvatar?.addEventListener('click', abrirSelectorAvatares)
 
