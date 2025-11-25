@@ -81,7 +81,7 @@ function controlBotones() {
 
             try {
 
-                const response = await axios.post('http://localhost:8000/api/partidas', 
+                const response = await axios.post('/api/partidas', 
                 { nombre_partida: nombrePartida }, 
                 {
                     headers: {
@@ -125,7 +125,7 @@ async function cargarPartidas() {
   if (!partidasUsuario) return;
 
   try {
-    const response = await axios.get('http://localhost:8000/api/partidas', {
+    const response = await axios.get('/api/partidas', {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'

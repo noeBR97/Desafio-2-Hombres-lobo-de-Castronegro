@@ -6,6 +6,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PartidaController;
+use App\Models\JugadorPartida;
+use App\Models\VotoPartida;
+use Carbon\Carbon;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -37,5 +40,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/partidas', [PartidaController::class, 'index']);
     Route::post('/partidas', [PartidaController::class, 'store']);
 });
-Route::middleware(['auth:sanctum', 'admin'])->get('/users', 
-[UsuarioController::class, 'index']);
