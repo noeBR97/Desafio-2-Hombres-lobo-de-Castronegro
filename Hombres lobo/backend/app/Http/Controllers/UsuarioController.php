@@ -117,7 +117,7 @@ class UsuarioController extends Controller
 
         $usuario->save();
 
-        return response()->json(['mensaje'=> 'Usuario actualizado correctamente'], 200);
+        return response()->json(['mensaje'=> 'Usuario actualizado correctamente', 'usuario' => $usuario], 200);
     }
 
     public function index()
