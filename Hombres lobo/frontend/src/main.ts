@@ -78,6 +78,20 @@ document.addEventListener('DOMContentLoaded', () => {
       validMsg.classList.add('visible')
 
       limpiarFormulario()
+
+      //login automatico tras registro
+      const loginRes = await fetch('http://localhost:8000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'},
+        body: JSON.stringify({ correo, clave })
+      })
+      const loginData = await loginRes.json()
+      if (loginRes.ok && loginData.token) {
+        localStorage.setItem('auth_token', loginData.token)
+        sessionStorage.setItem('user', JSON.stringify(loginData.user))
+        window.location.href = '/HTML/dashboard.html'
+      }
     } else {
       console.log('Error: ', respuesta)
       errorMsg.textContent = 'Error al registrar el usuario.'

@@ -24,6 +24,7 @@ Route::post('/validar-email', [UsuarioController::class,'validarEmail']);
 
 // Rutas públicas (sin token)
 Route::post('/login',    [AuthController::class, 'login']);
+Route::get('usuarios/avatares', [UsuarioController::class, 'listaAvatares']);
 
 // Rutas protegidas (requieren token Bearer)
 Route::middleware('auth:sanctum')->group(function () {
@@ -36,6 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/usuarios/{user}', [AdminController::class, 'delete']);
     Route::get('/partidas', [PartidaController::class, 'index']);
     Route::post('/partidas', [PartidaController::class, 'store']);
+    Route::post('/usuarios/actualizar-imagen', [UsuarioController::class, 'actualizarImagenPerfil']);
+    Route::post('usuarios/elegir-avatar', [UsuarioController::class, 'elegirAvatar']);
+    Route::put('/usuario/update', [UsuarioController::class, 'update']);
 });
-Route::middleware(['auth:sanctum', 'admin'])->get('/users', 
+Route::middleware(['auth:sanctum', 'admin'])->get('/users',
 [UsuarioController::class, 'index']);

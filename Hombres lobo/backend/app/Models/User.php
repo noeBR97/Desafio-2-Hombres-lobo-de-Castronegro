@@ -21,6 +21,8 @@ class User extends Authenticatable
         'partidas_ganadas',
         'partidas_perdidas',
         'rol_corp',
+        'avatar_url',
+        'avatar_predefinido',
     ];
 
     // Campos que NO se devuelven en JSON
