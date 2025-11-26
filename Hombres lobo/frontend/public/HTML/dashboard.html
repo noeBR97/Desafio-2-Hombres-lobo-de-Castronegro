@@ -14,7 +14,23 @@
         <section class="perfil-columna">
             
             <div class="perfil-info">
-                <img src="../img/AVATAR-USUARIO.png" alt="Avatar de usuario" class="avatar">
+                <div class="imagen-container">
+                    <img src="../img/avatar-predeterminado.png" alt="Avatar de usuario" class="avatar" id="avatar">
+                    <input type="file" id="input-subir-imagen" name="imagen-perfil" accept="image/*">
+                        <div class="avatar-menu" id="avatar-menu">
+                            <button data-action="subir-imagen">Subir imagen</button>
+                            <button data-action="elegir-avatar">Elegir avatar</button>
+                            <button data-action="editar-usuario">Editar Perfil</button>
+                        </div>  
+
+                        <div id="modal_avatares" class="modal-overlay">
+                            <div class="modal-contenido">
+                                <span class="cerrar">&times;</span>
+                                <h3>Elige tu avatar</h3>
+                                <div id="lista_avatares" class="avatar_grid"></div>
+                            </div>
+                        </div>
+                </div>
                 <span class="nick" id="nombre-usuario">default</span>
             </div>
 
@@ -26,6 +42,29 @@
                     <li id="usuario-derrotas-partidas">Derrotas: x</li>
                 </ul>
             </div>
+
+            <div class="estadisticas-rol">
+                <h3>Estadísticas por rol:</h3>
+                <label for="rol-select">Selecciona un rol:</label>
+                <select id="rol-select">
+                    <option value="">----</option>
+                    <option value="aldeano">Aldeano</option>
+                    <option value="hombre-lobo">Hombre Lobo</option>
+                    <option value="vidente">Vidente</option>
+                    <option value="protector">Protector</option>
+                    <option value="bruja">Bruja</option>
+                    <option value="nina">Niña</option>
+                    <option value="cupido">Cupido</option>
+                </select>
+
+                <ul id="estadisticas-rol-list">
+                    <li>Partidas jugadas: </li>
+                    <li>Victorias: </li>
+                    <li>Derrotas: </li>
+                </ul>
+            </div>
+
+            <button class="btn-cerrar-sesion" id="btn-cerrar-sesion">Cerrar Sesión</button>
 
         </section>
 
@@ -70,6 +109,17 @@
                     <button type="submit" class="btn-confirmar">Confirmar</button>
                 </div>
             </form>
+        </div>
+    </div>
+    <div id="editar-usuario" class="modal-overlay">
+        <div class="modal-contenido">
+            <input type="text" id="nuevo-nick" placeholder="Nuevo nombre de usuario">
+            <input type="password" id="nueva-clave" placeholder="Nueva contraseña">
+            <div class="modal-botones">
+                <button type="submit" class="btn-confirmar" id="btn-guardar-cambios">Guardar Cambios</button>
+                <button type="button" class="btn-cancelar" id="btn-cancelar-actualizar">Cancelar</button>
+                <span class="icono-ojo toggle-clave" data-input="nueva-clave"></span>
+            </div>
         </div>
     </div>
     <script type="module" src="../../src/TS/dashboard.ts"></script>

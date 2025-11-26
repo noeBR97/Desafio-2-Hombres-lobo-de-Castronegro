@@ -30,6 +30,22 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.style.display = 'none'
   })
 
+  document
+  .querySelectorAll<HTMLSpanElement>(".toggle-clave")
+  .forEach((boton) => {
+    const idInput = boton.getAttribute("data-input");
+    if (!idInput) return;
+
+    const input = document.getElementById(idInput) as HTMLInputElement | null;
+    if (!input) return;
+
+    boton.addEventListener("click", () => {
+      const visible = input.type === "text";
+      input.type = visible ? "password" : "text";
+      boton.classList.toggle("activo", !visible);
+    });
+  });
+
   formulario?.addEventListener('submit', async (e) => {
     e.preventDefault()
     const nombre = (document.getElementById('nombre_registro') as HTMLInputElement).value
@@ -39,8 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const nick = (document.getElementById('username_registro') as HTMLInputElement).value
     const clave = (document.getElementById('password_registro') as HTMLInputElement).value
 
+    const userOK = await validarUserName()
     const passOK = validarPass()
-    const userOK = validarUserName()
     const emailOK = validarEmail()
 
     if (!passOK || !userOK || !emailOK) {
@@ -62,6 +78,20 @@ document.addEventListener('DOMContentLoaded', () => {
       validMsg.classList.add('visible')
 
       limpiarFormulario()
+
+      //login automatico tras registro
+      const loginRes = await fetch('http://localhost:8000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'},
+        body: JSON.stringify({ correo, clave })
+      })
+      const loginData = await loginRes.json()
+      if (loginRes.ok && loginData.token) {
+        localStorage.setItem('auth_token', loginData.token)
+        sessionStorage.setItem('user', JSON.stringify(loginData.user))
+        window.location.href = '/HTML/dashboard.html'
+      }
     } else {
       console.log('Error: ', respuesta)
       errorMsg.textContent = 'Error al registrar el usuario.'
@@ -81,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
   botonLogin?.addEventListener('click', () => {
     if (!modalLogin) return
     modalLogin.style.display = 'block'
-    overlay.style.display = 'block'        // usamos el MISMO overlay del registro
+    overlay.style.display = 'block'
   })
 
   // Cerrar con la X
@@ -91,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.style.display = 'none'
   })
 
-  // Cerrar con el botón "Cancelar" (lleva data-dismiss="modal")
+  // Cerrar con el botón "Cancelar"
   const botonesCancelar = document.querySelectorAll<HTMLElement>('[data-dismiss="modal"]')
   botonesCancelar.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -101,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   })
 
-  // IMPORTANTE: que el overlay cierre también el login si está abierto
   overlay.addEventListener('click', () => {
     modal.style.display = 'none'
     if (modalLogin) {
@@ -110,62 +139,67 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.style.display = 'none'
   })
 
-  // ===============================
-  //  SUBMIT LOGIN (llamada a la API)
-  // ===============================
-  formLogin?.addEventListener('submit', async (e) => {
-    e.preventDefault()
-    if (!inputCorreo || !inputClave || !errorLogin) return
+// ===============================
+//  SUBMIT LOGIN (llamada a la API)
+// ===============================
+formLogin?.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  if (!inputCorreo || !inputClave || !errorLogin) return
 
-    // limpiar mensaje de error
-    errorLogin.hidden = true
-    errorLogin.textContent = ''
+  // limpiar mensaje de error
+  errorLogin.hidden = true
+  errorLogin.textContent = ''
+  errorLogin.classList.remove('visible')
 
-    const correo = inputCorreo.value.trim()
-    const clave = inputClave.value
+  const correo = inputCorreo.value.trim()
+  const clave = inputClave.value
 
-    try {
-      const res = await fetch('http://localhost:8000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify({ correo, clave })
-      })
+  try {
+  const res = await fetch('http://localhost:8000/api/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ correo, clave }),
+  });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error((data as any).message || 'Error al iniciar sesión')
-      }
+  const data = await res.json().catch(() => ({} as any));
 
-      const data = await res.json()
+  // Si el backend responde con error (401, etc.)
+  if (!res.ok || !data.ok) {
+    errorLogin.textContent =
+      (data as any).message || 'Correo o contraseña incorrectos';
+    errorLogin.hidden = false;
+    errorLogin.classList.add('visible');
+    return;
+  }
 
-      // Guardar usuario si quieres proteger otras páginas
-      if (data.user && data.token) {
-        sessionStorage.setItem('user', JSON.stringify(data.user))
-        sessionStorage.setItem('auth_token', data.token)
-      }
-      
-      // Cerrar modal de login
-      if (modalLogin) {
-        modalLogin.style.display = 'none'
-      }
-      overlay.style.display = 'none'
-      formLogin.reset()
-      errorLogin.hidden = true
-      errorLogin.textContent = ''
+  // Guardar token y usuario
+  localStorage.setItem('auth_token', data.token);
+  sessionStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirección según rol
-      if (data.user && data.user.is_admin) {
-        window.location.href = '/HTML/admin.html'
-      } else {
-        window.location.href = '/HTML/dashboard.html'
-      }
-    } catch (err) {
-      console.error(err)
-      errorLogin.textContent = 'Correo o contraseña incorrectos'
-      errorLogin.hidden = false
-    }
-  })
-  })
+  // (opcional) Si quieres solo loguear si hay token, pero sin saltar alerta chunga
+  if (!data.token) {
+    console.warn('Login sin token en la respuesta');
+  }
+
+  // Cerrar modal
+  modalLogin!.style.display = 'none';
+  overlay.style.display = 'none';
+  formLogin.reset();
+  errorLogin.hidden = true;
+  errorLogin.textContent = '';
+
+  // Redirección según rol
+  if (data.user && data.user.rol_corp === 'admin') {
+    window.location.href = '/HTML/admin.html';
+  } else {
+    window.location.href = '/HTML/dashboard.html';
+  }
+} catch (err) {
+  console.error(err);
+  errorLogin.textContent = 'Error de conexión con el servidor';
+  errorLogin.hidden = false;
+  errorLogin.classList.add('visible');
+}})});

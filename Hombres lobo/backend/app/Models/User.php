@@ -20,7 +20,9 @@ class User extends Authenticatable
         'partidas_jugadas',
         'partidas_ganadas',
         'partidas_perdidas',
-        'is_admin',
+        'rol_corp',
+        'avatar_url',
+        'avatar_predefinido',
     ];
 
     // Campos que NO se devuelven en JSON
@@ -34,6 +36,6 @@ class User extends Authenticatable
         'partidas_ganadas'   => 'integer',
         'partidas_perdidas'  => 'integer',
         'email_verified_at'  => 'datetime',
-        'is_admin'           => 'boolean',
+        'rol_corp'           => 'string',
     ];
 }

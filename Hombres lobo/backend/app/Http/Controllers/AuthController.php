@@ -48,32 +48,40 @@ class AuthController extends Controller
     }
 // LOGIN
     public function login(Request $request)
-    {
-        $datos = $request->validate([
-            'correo' => 'required|email',
-            'clave'  => 'required|string',
-        ]);
+{
+    // Validamos los datos que vienen del formulario
+    $datos = $request->validate([
+        'correo' => ['required', 'email'],
+        'clave'  => ['required', 'string'],
+    ]);
 
-        $usuario = User::where('correo', $datos['correo'])->first();
+    // Buscamos al usuario por correo
+    $usuario = User::where('correo', $datos['correo'])->first();
+    $token = $usuario->createToken('token-de-login')->plainTextToken;
 
-        if (!$usuario) {
-            return response()->json(['message' => 'Correo incorrecto'], 401);
-        }
-
-        // Comparar la clave en TEXTO con el HASH de la BD
-        if (!Hash::check($datos['clave'], $usuario->clave)) {
-            return response()->json(['message' => 'Contraseña incorrecta'], 401);
-        }
-
-        $token = $usuario->createToken('token-de-login')->plainTextToken;
-
+    // Comprobamos que exista y que la clave coincida
+    if (!$usuario || !Hash::check($datos['clave'], $usuario->clave)) {
         return response()->json([
-            'message' => 'Login correcto',
-            'token'   => $token,
-            'user'    => $usuario,
-        ], 200);
+            'ok'      => false,
+            'message' => 'Correo o contraseña incorrectos',
+        ], 401);
     }
-    
+
+    return response()->json([
+        'ok'    => true,
+        'message' => 'Login correcto',
+        'token' => $token,
+        'user'  => [
+            'id'       => $usuario->id,
+            'nick'     => $usuario->nick,
+            'correo'   => $usuario->correo,
+            'rol_corp' => $usuario->rol_corp,
+            'imagen_perfil' => $usuario->avatar_url,
+        ],
+    ], 200);
+}
+
+
 
     public function perfil(Request $request)
     {
@@ -94,11 +102,21 @@ class AuthController extends Controller
             'apellido1'           => $u->apellido1,
             'apellido2'           => $u->apellido2,
             'nick'                => $u->nick,
-            'email'               => $u->email,
+            'correo'              => $u->correo,
             'partidas_jugadas'    => $u->partidas_jugadas,
             'partidas_ganadas'    => $u->partidas_ganadas,
             'partidas_perdidas'   => $u->partidas_perdidas,
+            'avatar_url'          => $u->avatar_url,
+            'avatar_predefinido'  => $u->avatar_predefinido,
             'created_at'          => $u->created_at,
             'updated_at'          => $u->updated_at,
         ];
-    }}
+    }
+
+    public function me(Request $request) {
+        $usuario = $request->user();
+        return response()->json([
+            'usuario' => $this->mapUsuario($usuario),
+        ]);
+    }
+}
