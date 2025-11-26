@@ -34,7 +34,7 @@ class PartidaController extends Controller
             'nombre_partida' => $validatedData['nombre_partida'],
             'id_creador_partida' => $user->id, 
             'estado' => 'en_espera',
-            'numero_jugadores' => 1, 
+            'numero_jugadores' => 0, 
         ]);
 
         $partida->jugadores()->attach($user->id, ['es_bot' => false, 'vivo' => true]);
