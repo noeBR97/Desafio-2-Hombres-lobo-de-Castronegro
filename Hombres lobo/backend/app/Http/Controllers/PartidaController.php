@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Events\JugadorUnido;
 use App\Events\ActualizarListaPartidas;
+use App\Events\JugadorSalio;
 
 class PartidaController extends Controller
 {
@@ -70,5 +71,35 @@ class PartidaController extends Controller
 
         return response()->json(['message' => 'Te has unido a la partida']);
     }
-    
+
+    public function salir($id)
+    {
+        try {
+            $user = auth()->user();
+            $partida = Partida::findOrFail($id);
+            
+            if ($partida->jugadores()->where('users.id', $user->id)->exists()) {
+                $partida->jugadores()->detach($user->id);
+                
+                if ($partida->numero_jugadores > 0) {
+                    $partida->decrement('numero_jugadores');
+                }
+            }
+            
+            $partida->load('jugadores');
+            
+            broadcast(new JugadorSalio($user, $partida->id))->toOthers();
+            broadcast(new ActualizarListaPartidas($partida))->toOthers();
+            
+            return response()->json([
+                'mensaje' => 'Has salido de la partida'
+            ]);
+        
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

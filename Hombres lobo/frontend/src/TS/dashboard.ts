@@ -47,8 +47,8 @@ function conectarDashboardWebSocket() {
     });
 
     echo.channel('dashboard')
-        .listen('.ActualizarListaPartidas', (e: any) => {
-            console.log('Nueva partida detectada:', e.partida);
+        .listen('.ActualizarListaPartidas', () => {
+            console.log('Nueva partida detectada');
             cargarPartidas(); 
         });
 }

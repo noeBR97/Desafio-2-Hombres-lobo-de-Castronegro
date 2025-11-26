@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from "axios";
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
@@ -56,37 +56,15 @@ function conectarWebSockets(gameId: string, token: string) {
     });
 
     echo.private(`lobby.${gameId}`)
-        .listen('.JugadorUnido', (e: any) => {
-            console.log("¡Nuevo jugador detectado!", e.user);
-            
-            agregarJugadorVisualmente(e.user);
-        });
-}
+    .listen('.JugadorUnido', (e: any) => {
+        console.log('Jugador entró', e);
+        cargarDatosPartida();
+    })
+    .listen('.JugadorSalio', (e: any) => {
+        console.log('Jugador salió', e);
+        cargarDatosPartida();
+    });
 
-function agregarJugadorVisualmente(jugador: User) {
-    if (!listaJugadores) return;
-
-    const yaExiste = Array.from(listaJugadores.children).some(li => 
-        li.innerHTML.includes(`>${jugador.nick}<`)
-    );
-    if (yaExiste) return;
-
-    const huecoVacio = listaJugadores.querySelector('.slot-jugador.empty');
-    
-    if (huecoVacio) {
-        huecoVacio.className = 'slot-jugador'; 
-        huecoVacio.innerHTML = `<strong>${jugador.nick}</strong>`;
-    } else {
-        const li = document.createElement('li');
-        li.className = 'slot-jugador';
-        li.innerHTML = `<strong>${jugador.nick}</strong>`;
-        listaJugadores.appendChild(li);
-    }
-
-    if (contadorJugadores) {
-        const actual = parseInt(contadorJugadores.textContent?.split('/')[0] || "0");
-        contadorJugadores.textContent = `${actual + 1}/30`;
-    }
 }
 
 async function cargarDatosPartida() {
@@ -174,8 +152,25 @@ function checkSiSoyCreador(idCreador: number) {
 
 function controlBotones() {
     if (btnSalir) {
-        btnSalir.addEventListener('click', () => {
-            window.location.href = '/HTML/dashboard.html';
+        btnSalir.addEventListener('click', async () => {
+            const gameId = getGameIdFromUrl();
+            const token = sessionStorage.getItem('auth_token');
+            
+            if (gameId && token) {
+                try {
+                    await axios.post(`http://localhost:8000/api/partidas/${gameId}/salir`, {}, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    
+                    window.location.href = '/HTML/dashboard.html';
+                
+                } catch (error) {
+                     const err = error as AxiosError;
+
+                    console.error("Error al salir de la partida", err.response?.data || error);
+                    alert("No se pudo salir de la partida");
+                }
+            }
         });
     }
 

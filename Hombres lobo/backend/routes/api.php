@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/partidas', [PartidaController::class, 'store']);
     Route::get('/partidas/{id}', [PartidaController::class, 'show']);
     Route::post('/partidas/{id}/unirse', [PartidaController::class, 'unirse']);
+    Route::post('/partidas/{id}/salir', [PartidaController::class, 'salir']);
 
     Broadcast::routes();
 });
