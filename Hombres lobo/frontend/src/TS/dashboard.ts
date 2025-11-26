@@ -3,7 +3,7 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
 (window as any).Pusher = Pusher;
-import { validarPass } from './validarFormularioRegistro';
+//import { validarPass } from './validarFormularioRegistro';
 
 interface Usuario {
   nombre: string;
@@ -28,7 +28,7 @@ const formularioCrearPartida = document.getElementById('form-crear-partida');
 const modalNombrePartida = document.getElementById('nombre-partida-input') as HTMLInputElement;
 const modalCancelarPartida = document.getElementById('btn-cancelar-crear');
 const imagenPerfil = document.getElementById('avatar');
-const menuImagen = document.getElementById('avatar-menu');
+const menuImagen = document.getElementById('avatar-menu') as HTMLElement;
 const inputImagen = document.getElementById('input-subir-imagen') as HTMLInputElement;
 const botonSubirImagen = document.querySelector('[data-action="subir-imagen"]') as HTMLButtonElement;
 const avatar = document.getElementById('avatar') as HTMLImageElement;
@@ -73,15 +73,19 @@ function conectarDashboardWebSocket() {
         });
 }
 
-function cargarDatosUsuario() {
+async function cargarDatosUsuario() {
+  const token = sessionStorage.getItem('auth_token');
   const usuario = sessionStorage.getItem('user');
+
+  if (!token) {
+    console.error("No se encontró token, redirigiendo al inicio.");
+    window.location.href = '/index.html'; 
+    return;
+  }
 
   if (!usuario) {
     console.error("No hay usuario en la sesión. Redirigiendo al inicio.");
-async function cargarDatosUsuario() {
-  const token = localStorage.getItem('auth_token');
-  if (!token) {
-    console.error("No se encontró token, redirigiendo al inicio.");
+
     window.location.href = '/index.html'; 
     return;
   }
@@ -89,7 +93,7 @@ async function cargarDatosUsuario() {
   try {
     const response = await axios.get('http://localhost:8000/api/me', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        'Authorization': `Bearer ${sessionStorage.getItem('auth_token')}`
       }
     })
 
@@ -238,7 +242,7 @@ function subirImagen() {
     const formData = new FormData()
     formData.append('imagen-perfil', file)
 
-    const token = localStorage.getItem('auth_token')
+    const token = sessionStorage.getItem('auth_token')
     if (!token) {
       alert('Error de sesión. Inicia sesión de nuevo.')
       window.location.href = '/index.html'
@@ -297,7 +301,7 @@ async function abrirSelectorAvatares() {
 }
 
 async function elegirAvatar(nombreAvatar: string) {
-  const token = localStorage.getItem('auth_token')
+  const token = sessionStorage.getItem('auth_token')
   if (!token) return window.location.href = '/index.html'
 
   try {
@@ -333,7 +337,7 @@ function editarUsuario() {
 
     //TODO: Validar la nueva clave. Reestructurar validarPass para meter la nueva clave por parametro
 
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     if (!token) {
       alert('Error de sesión. Inicia sesión de nuevo.');
       window.location.href = '/index.html';
@@ -426,7 +430,6 @@ document.addEventListener('DOMContentLoaded', () => {
     controlBotones();
     cargarPartidas();
     conectarDashboardWebSocket();
-});
     subirImagen()
 
     mostrarFormularioEditarUsuario();

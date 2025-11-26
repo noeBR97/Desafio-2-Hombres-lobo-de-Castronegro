@@ -17,7 +17,7 @@ function obtenerUsuarioSesion(): UsuarioSesion | null {
 }
 
 export function requerirLogin(): UsuarioSesion {
-  const token = localStorage.getItem('auth_token');
+  const token = sessionStorage.getItem('auth_token');
   const usuario = obtenerUsuarioSesion();
 
   if (!token || !usuario) {
