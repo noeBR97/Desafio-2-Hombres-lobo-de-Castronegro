@@ -1,4 +1,8 @@
 import axios from 'axios';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+(window as any).Pusher = Pusher;
 import { validarPass } from './validarFormularioRegistro';
 
 interface Usuario {
@@ -41,6 +45,39 @@ const botonSelectRol = document.getElementById('rol-select') as HTMLSelectElemen
 const listaEstadisticasRol = document.getElementById('estadisticas-rol-list') as HTMLUListElement;
 const divEditarUsuario = document.getElementById('editar-usuario') as HTMLDivElement;
 
+function conectarDashboardWebSocket() {
+    const token = sessionStorage.getItem('auth_token');
+    if (!token) return;
+
+    const echo = new Echo({
+        broadcaster: 'reverb',
+        key: 'wapw1chslaoar5p0jt4i',
+        wsHost: 'localhost',
+        wsPort: 8085,
+        wssPort: 8085,
+        forceTLS: false,
+        enabledTransports: ['ws', 'wss'],
+        authEndpoint: 'http://localhost:8000/api/broadcasting/auth',
+        auth: {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/json'
+            }
+        }
+    });
+
+    echo.channel('dashboard')
+        .listen('.ActualizarListaPartidas', () => {
+            console.log('Nueva partida detectada');
+            cargarPartidas(); 
+        });
+}
+
+function cargarDatosUsuario() {
+  const usuario = sessionStorage.getItem('user');
+
+  if (!usuario) {
+    console.error("No hay usuario en la sesión. Redirigiendo al inicio.");
 async function cargarDatosUsuario() {
   const token = localStorage.getItem('auth_token');
   if (!token) {
@@ -114,7 +151,7 @@ function controlBotones() {
                 return;
             }
 
-            const token = localStorage.getItem('auth_token');
+            const token = sessionStorage.getItem('auth_token');
             if (!token) {
                 alert("Error de sesión. Por favor, vuelve a iniciar sesión.");
                 window.location.href = '/index.html';
@@ -149,11 +186,38 @@ function controlBotones() {
   if (cerrarSesion) {
     cerrarSesion.addEventListener('click', () => {
       console.log('Cerrando sesión...');
-      sessionStorage.removeItem('user');
-      localStorage.removeItem('auth_token'); 
+      sessionStorage.clear();
       window.location.href = '/index.html'; 
     });
   }
+
+  if (partidasUsuario) {
+        partidasUsuario.addEventListener('click', async (e) => { 
+            const target = (e.target as HTMLElement);
+            
+            if (target.classList.contains('btn-unirse')) {
+                const gameId = target.getAttribute('data-game-id');
+                const token = sessionStorage.getItem('auth_token'); 
+
+                if (gameId && token) {
+                    try {
+                        await axios.post(`http://localhost:8000/api/partidas/${gameId}/unirse`, {}, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        window.location.href = `/HTML/lobby.html?id=${gameId}`;
+
+                    } catch (error) {
+                        console.error("Error al unirse a la partida:", error);
+                        alert("No se pudo unir a la partida.");
+                    }
+                }
+            }
+        });
+    }
 
 }
 
@@ -321,7 +385,7 @@ function mostrarFormularioEditarUsuario() {
 }
 
 async function cargarPartidas() {
-  const token = localStorage.getItem('auth_token');
+  const token = sessionStorage.getItem('auth_token');
   if (!token) {
     console.error("No se encontró token, no se pueden cargar partidas.");
     return;
@@ -361,6 +425,8 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarDatosUsuario(); 
     controlBotones();
     cargarPartidas();
+    conectarDashboardWebSocket();
+});
     subirImagen()
 
     mostrarFormularioEditarUsuario();
