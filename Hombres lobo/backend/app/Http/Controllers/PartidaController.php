@@ -71,7 +71,7 @@ class PartidaController extends Controller
         
         $partida->load('jugadores');
         
-        broadcast(new JugadorSalio($user, $partida->id))->toOthers();
+        broadcast(new JugadorUnido($user, $partida->id))->toOthers();
         broadcast(new ActualizarListaPartidas($partida))->toOthers();
 
         return response()->json(['message' => 'Te has unido a la partida']);
