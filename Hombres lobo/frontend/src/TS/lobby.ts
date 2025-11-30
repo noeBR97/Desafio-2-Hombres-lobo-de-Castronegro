@@ -30,7 +30,7 @@ const estadoPartida = document.getElementById('estado-partida');
 const btnSalir = document.getElementById('btn-salir');
 const btnIniciar = document.getElementById('btn-iniciar');
 
-function getGameIdFromUrl(): string | null {
+export function getGameIdFromUrl(): string | null {
     const params = new URLSearchParams(window.location.search);
     return params.get('id');
 }
