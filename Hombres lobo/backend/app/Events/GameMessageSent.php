@@ -35,6 +35,7 @@ class GameMessageSent implements ShouldBroadcast
                 'id' => $this->mensaje->id,
                 'partida_id' => $this->mensaje->partida_id,
                 'usuario_id' => $this->mensaje->usuario_id,
+                'usuario_nick' => $this->mensaje->usuario->nick,
                 'contenido' => $this->mensaje->contenido,
                 'created_at' => $this->mensaje->created_at,
                 'updated_at' => $this->mensaje->updated_at,
