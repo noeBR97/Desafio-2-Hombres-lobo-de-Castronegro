@@ -177,7 +177,9 @@ function controlBotones() {
     if (btnIniciar) {
         btnIniciar.addEventListener('click', () => {
             console.log("¡Iniciando partida!");
-            alert("Funcionalidad de iniciar partida no implementada.");
+            // alert("Funcionalidad de iniciar partida no implementada.");
+            const gameId = getGameIdFromUrl();
+            window.location.href = `/HTML/juego.html?id=${gameId}`;
         });
     }
 }
