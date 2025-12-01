@@ -12,7 +12,6 @@ class ChatController extends Controller
     {
         $request->validate([
             'partida_id' => 'required|integer|exists:partidas,id',
-            'usuario_id' => 'required|integer|exists:users,id',
             'contenido'  => 'required|string|max:1000',
         ]);
 
