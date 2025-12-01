@@ -12,7 +12,7 @@ const btnEnviarMensaje = document.getElementById('enviar-mensaje') as HTMLButton
 
 //parámetros del juego
 const partidaID = getGameIdFromUrl();
-const token = localStorage.getItem('token');
+const token = sessionStorage.getItem('auth_token');
 const user = JSON.parse(localStorage.getItem('user') || '{}');
 
 if (!partidaID || !token) {
@@ -39,18 +39,18 @@ function conectarWebSockets(gameId: string, token: string) {
         }
     });
 
-    echo.private(`game.${partidaID}`)
+    echo.private(`game.${gameId}`)
     .listen('.message.sent', (e: any) => {
         if(!listaMensajes) return;
 
         const nuevoMensaje = document.createElement('li');
         nuevoMensaje.className = 'mensaje-item'
 
-        if(e.message.user_id === user.id) {
+        if(e.mensaje.usuario_id === user.id) {
             nuevoMensaje.classList.add('mensaje-propio');
         }
 
-        nuevoMensaje.innerHTML = `<strong>${e.message.usuario_nick}:</strong> ${e.message.contenido}`;
+        nuevoMensaje.innerHTML = `<strong>${e.mensaje.usuario_nick}:</strong> ${e.mensaje.contenido}`;
         listaMensajes.appendChild(nuevoMensaje);
         listaMensajes.scrollTop = listaMensajes.scrollHeight;
     })
@@ -61,8 +61,8 @@ btnEnviarMensaje?.addEventListener('click', async () => {
     if (!contenido || !partidaID || !token) return;
     try {
         await axios.post('http://localhost:8000/api/chat/send-private', {
+            contenido,
             partida_id: parseInt(partidaID),
-            contenido
         }, {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -75,3 +75,8 @@ btnEnviarMensaje?.addEventListener('click', async () => {
         console.error('Error enviando mensaje:', axiosError.message);
     }
 })
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!partidaID || !token) return;
+    conectarWebSockets(partidaID, token);
+});
