@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/partidas/{id}/unirse', [PartidaController::class, 'unirse']);
     Route::post('/partidas/{id}/salir', [PartidaController::class, 'salir']);
     Route::post('/chat/send-private', [ChatController::class, 'sendPrivate']);
+    Route::post('/partidas/{id}/iniciar', [PartidaController::class, 'iniciar']);
 
     Route::post('/usuarios/actualizar-imagen', [UsuarioController::class, 'actualizarImagenPerfil']);
     Route::post('usuarios/elegir-avatar', [UsuarioController::class, 'elegirAvatar']);
