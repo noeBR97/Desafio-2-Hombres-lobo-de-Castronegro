@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+    --color-page-bg: #121212;
+    --color-header-bg: #1C1C1C;
+    --color-footer-bg: #1C1C1C;
+    --color-border: #333333;
+    --color-container-bg: rgba(28, 28, 28, 0.90); 
+    --color-text-main: #E0E0E0;
+    --color-text-muted: #C1A35E;
+    --color-input-bg: #E0E0E0;
+    --color-input-text: #121212;
+    --color-placeholder: #555555;
+    --color-button-bg: #8A0303;
+    --color-button-bg-hover: #6b0202;
+    --color-button-secondary-bg: #555555;
+    --color-button-secondary-hover: #444444;
+}
+
+body {
+    background-color: var(--color-page-bg);
+}
+
+.titulo-juego {
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    color: var(--color-text-muted);
+}
+
+.juego {
+    flex: 1;
+    display: flex;
+    height: 1000px;
+    background: var(--color-page-bg);
+}
+
+.juego-jugadores-chat {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 10px;
+    width: 70%;
+    height: 100%;
+    padding: 20px;
+    position: relative;
+}
+
+.juego-tiempo {
+    grid-column: 3 / span 4;
+    grid-row: 2 / span 4;
+    background: var(--color-container-bg);
+    border: 2px solid var(--color-border);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.juego-tiempo img {
+    width: 100%;
+    height: 100%;
+}
+
+.jugador {
+    background: var(--color-container-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    color: var(--color-text-main);
+    text-align: center;
+    font-family: 'Crimson Text', serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: 0.3s ease;
+    cursor: pointer;
+    background-image: url(../img/CARTA-BACK.png);
+    background-size: cover;
+}
+
+.jugador:hover {
+    transform: scale(1.05);
+    border-color: var(--color-text-muted);
+}
+
+.div1 { grid-column:1; grid-row:1; }
+.div2 { grid-column:2; grid-row:1; }
+.div3 { grid-column:3; grid-row:1; }
+.div4 { grid-column:4; grid-row:1; }
+.div5 { grid-column:5; grid-row:1; }
+.div6 { grid-column:6; grid-row:1; }
+.div7 { grid-column:7; grid-row:1; }
+.div8 { grid-column:8; grid-row:1; }
+
+.div9 { grid-column:1; grid-row:2; }
+.div10 { grid-column:2; grid-row:2; }
+.div11 { grid-column:7; grid-row:2; }
+.div12 { grid-column:8; grid-row:2; }
+
+.div13 { grid-column:1; grid-row:3; }
+.div14 { grid-column:2; grid-row:3; }
+.div15 { grid-column:7; grid-row:3; }
+.div16 { grid-column:8; grid-row:3; }
+
+.div17 { grid-column:1; grid-row:4; }
+.div18 { grid-column:2; grid-row:4; }
+.div19 { grid-column:7; grid-row:4; }
+.div20 { grid-column:8; grid-row:4; }
+
+.div21 { grid-column:1; grid-row:5; }
+.div22 { grid-column:2; grid-row:5; }
+.div23 { grid-column:7; grid-row:5; }
+.div24 { grid-column:8; grid-row:5; }
+
+.div25 { grid-column:1; grid-row:6; }
+.div26 { grid-column:2; grid-row:6; }
+.div27 { grid-column:3; grid-row:6; }
+.div28 { grid-column:6; grid-row:6; }
+.div29 { grid-column:7; grid-row:6; }
+.div30 { grid-column:8; grid-row:6; }
+
+@media (max-width: 900px) {
+    .juego {
+        flex-direction: column;
+        height: auto; 
+        overflow-y: auto; 
+    }
+
+    .juego-jugadores-chat {
+        width: 100%;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: auto;
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .jugador {
+        grid-column: auto !important;
+        grid-row: auto !important;
+    }
+
+    .juego-tiempo {
+        grid-column: 1 / -1 !important;
+        grid-row: 4 / span 2 !important;
+        
+        height: 250px; 
+        margin: 15px 0;
+    }
+    
+    .juego-tiempo img {
+        width: auto;
+        height: 100%;
+        max-width: 100%;
+    }
+
+}

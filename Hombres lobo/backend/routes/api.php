@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Broadcast;
 use App\Models\JugadorPartida;
 use App\Models\VotoPartida;
 use Carbon\Carbon;
+use App\Http\Controllers\ChatController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -44,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/partidas/{id}', [PartidaController::class, 'show']);
     Route::post('/partidas/{id}/unirse', [PartidaController::class, 'unirse']);
     Route::post('/partidas/{id}/salir', [PartidaController::class, 'salir']);
+    Route::post('/chat/send-private', [ChatController::class, 'sendPrivate']);
 
     Broadcast::routes();
     Route::post('/usuarios/actualizar-imagen', [UsuarioController::class, 'actualizarImagenPerfil']);
