@@ -5,10 +5,23 @@ import { getGameIdFromUrl } from "./lobby";
 
 (window as any).Pusher = Pusher;
 
+interface Usuario {
+    id: number;
+    nick: string;
+}
+
+interface Juego {
+    id: number;
+    nombre_partida: string;
+    jugadores: Usuario[]; 
+}
+
 //referencias al DOM
 const listaMensajes = document.getElementById('mensajes') as HTMLUListElement;
 const inputMensaje = document.getElementById('input-mensaje') as HTMLInputElement;
 const btnEnviarMensaje = document.getElementById('enviar-mensaje') as HTMLButtonElement;
+const tableroJugadores = document.getElementById('juego-jugadores-chat') as HTMLDivElement;
+const tituloJuego = document.getElementById('titulo-juego');
 
 //parámetros del juego
 const partidaID = getGameIdFromUrl();
@@ -66,6 +79,11 @@ function conectarWebSockets(gameId: string, token: string) {
         document.getElementById('mensajes')?.appendChild(nuevoMensaje)
         listaMensajes.scrollTop = listaMensajes.scrollHeight
     })
+    echo.private(`lobby.${gameId}`)
+        .listen('.JugadorUnido', (e: any) => {
+            console.log("Jugador nuevo en la partida:", e.user);
+            agregarJugadorAlTablero(e.user);
+        });
 }
 
 btnEnviarMensaje?.addEventListener('click', async () => {
@@ -88,7 +106,66 @@ btnEnviarMensaje?.addEventListener('click', async () => {
     }
 })
 
+async function cargarJuego() {
+    if (!partidaID || !token) {
+        window.location.href = '/HTML/dashboard.html';
+        return;
+    }
+
+    try {
+        const response = await axios.get<Juego>(`http://localhost:8000/api/partidas/${partidaID}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+
+        const partida = response.data;
+        
+        if (tituloJuego) tituloJuego.textContent = partida.nombre_partida;
+
+        renderizarJugadores(partida.jugadores);
+
+    } catch (error) {
+        console.error("Error cargando juego:", error);
+    }
+}
+
+function renderizarJugadores(jugadores: Usuario[]) {
+    if (!tableroJugadores) return;
+    tableroJugadores.innerHTML = '';
+
+    jugadores.forEach(jugador => {
+        crearCartaJugador(jugador);
+    });
+
+}
+
+function agregarJugadorAlTablero(jugador: Usuario) {
+    if (!tableroJugadores) return;
+
+    if (tableroJugadores.innerHTML.includes(jugador.nick)) return;
+    
+    const cartas = Array.from(tableroJugadores.children);
+    const primerVacio = cartas.find(div => div.textContent?.includes('Esperando jugador...'));
+
+    if (primerVacio) {
+        primerVacio.innerHTML = `<span>${jugador.nick}</span>`;
+    } else {
+        crearCartaJugador(jugador);
+    }
+}
+
+function crearCartaJugador(jugador: Usuario) {
+    if (!tableroJugadores) return;
+    const div = document.createElement('div');
+    div.className = 'jugador';
+    div.innerHTML = `<span>${jugador.nick}</span>`;
+    tableroJugadores.appendChild(div);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     if (!partidaID || !token) return;
     conectarWebSockets(partidaID, token);
+    cargarJuego();
 });
