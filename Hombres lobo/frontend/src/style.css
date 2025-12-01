@@ -127,18 +127,19 @@ footer {
   position: relative;
   display: inline-block;
   width: 100%;
-  max-width: 300px;
+  max-width: 344px;
 }
 
 .campo-clave input {
-  width: 100%;
-  max-width: 275px;
+  width: 98%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.6rem 2.5rem 0.6rem 1rem;
 }
 
 .icono-ojo {
   position: absolute;
-  right: 1.1rem;
+  right: 60px;
   top: 50%;
   transform: translateY(-50%);
   width: 18px;
