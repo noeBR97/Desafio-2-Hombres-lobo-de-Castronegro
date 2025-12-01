@@ -13,7 +13,7 @@ const btnEnviarMensaje = document.getElementById('enviar-mensaje') as HTMLButton
 //parámetros del juego
 const partidaID = getGameIdFromUrl();
 const token = sessionStorage.getItem('auth_token');
-const user = JSON.parse(localStorage.getItem('user') || '{}');
+const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 
 if (!partidaID || !token) {
     console.error('ID de partida o token no disponibles');
@@ -44,15 +44,27 @@ function conectarWebSockets(gameId: string, token: string) {
         if(!listaMensajes) return;
 
         const nuevoMensaje = document.createElement('li');
-        nuevoMensaje.className = 'mensaje-item'
+        nuevoMensaje.className = 'mensaje'
 
         if(e.mensaje.usuario_id === user.id) {
             nuevoMensaje.classList.add('mensaje-propio');
+        } else {
+            nuevoMensaje.classList.add('mensaje-ajeno')
         }
 
-        nuevoMensaje.innerHTML = `<strong>${e.mensaje.usuario_nick}:</strong> ${e.mensaje.contenido}`;
-        listaMensajes.appendChild(nuevoMensaje);
-        listaMensajes.scrollTop = listaMensajes.scrollHeight;
+        const nombre = document.createElement('div')
+        nombre.classList.add('mensaje-nombre')
+        nombre.textContent = e.mensaje.usuario_nick
+
+        const cuerpo = document.createElement('div')
+        cuerpo.classList.add('mensaje-texto')
+        cuerpo.textContent = e.mensaje.contenido
+
+        nuevoMensaje.appendChild(nombre)
+        nuevoMensaje.appendChild(cuerpo)
+        
+        document.getElementById('mensajes')?.appendChild(nuevoMensaje)
+        listaMensajes.scrollTop = listaMensajes.scrollHeight
     })
 }
 
