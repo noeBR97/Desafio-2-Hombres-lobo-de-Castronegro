@@ -6,7 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PartidaController;
-use Illuminate\Support\Facades\Broadcast; 
+use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\ChatController;
 
 Route::get('/user', function (Request $request) {
@@ -28,6 +28,7 @@ Route::post('/validar-email', [UsuarioController::class,'validarEmail']);
 Route::post('/login',    [AuthController::class, 'login']);
 Route::get('usuarios/avatares', [UsuarioController::class, 'listaAvatares']);
 
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
 // Rutas protegidas (requieren token Bearer)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me',     [AuthController::class, 'me']);
@@ -44,7 +45,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/partidas/{id}/salir', [PartidaController::class, 'salir']);
     Route::post('/chat/send-private', [ChatController::class, 'sendPrivate']);
 
-    Broadcast::routes();
     Route::post('/usuarios/actualizar-imagen', [UsuarioController::class, 'actualizarImagenPerfil']);
     Route::post('usuarios/elegir-avatar', [UsuarioController::class, 'elegirAvatar']);
     Route::put('/usuario/update', [UsuarioController::class, 'update']);
