@@ -1,6 +1,7 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import api from "../api";
 
 (window as any).Pusher = Pusher;
 
@@ -84,7 +85,7 @@ async function cargarDatosPartida() {
     }
 
     try {
-        const response = await axios.get<Game>(`http://localhost:8000/api/partidas/${gameId}`, {
+        const response = await api.get<Game>(`/api/partidas/${gameId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
@@ -158,7 +159,7 @@ function controlBotones() {
             
             if (gameId && token) {
                 try {
-                    await axios.post(`http://localhost:8000/api/partidas/${gameId}/salir`, {}, {
+                    await api.post(`/api/partidas/${gameId}/salir`, {}, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     

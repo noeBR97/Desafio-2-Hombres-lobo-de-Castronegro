@@ -1,4 +1,3 @@
-import axios from 'axios'
 import api from '../api'
 
 const formulario = document.getElementById('formulario_registro') as HTMLFormElement
@@ -62,7 +61,7 @@ export async function validarEmail(): Promise<boolean> {
     const errorMsgEmail = document.getElementById('error_msg_email') as HTMLElement
 
     try {
-        const respuesta = await axios.post('/api/validar-email', {
+        const respuesta = await api.post('/api/validar-email', {
             correo: correo
         })
 

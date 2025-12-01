@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       limpiarFormulario()
 
       //login automatico tras registro
-      const loginRes = await fetch('http://localhost:8000/api/login', {
+      const loginRes = await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'},

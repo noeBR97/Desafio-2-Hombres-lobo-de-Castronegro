@@ -62,7 +62,8 @@ class PartidaController extends Controller
             
             $partida->jugadores()->attach($user->id, [
                 'es_bot' => false, 
-                'vivo' => true
+                'vivo' => true,
+                'rol_partida' => 'sin_asignar',
             ]);
 
             $partida->increment('numero_jugadores');

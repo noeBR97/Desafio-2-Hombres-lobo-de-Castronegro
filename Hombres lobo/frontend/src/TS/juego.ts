@@ -1,4 +1,5 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import api from "../api";
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import { getGameIdFromUrl } from "./lobby";
@@ -60,7 +61,7 @@ btnEnviarMensaje?.addEventListener('click', async () => {
     const contenido = inputMensaje.value.trim();
     if (!contenido || !partidaID || !token) return;
     try {
-        await axios.post('http://localhost:8000/api/chat/send-private', {
+        await api.post('/api/chat/send-private', {
             contenido,
             partida_id: parseInt(partidaID),
         }, {
