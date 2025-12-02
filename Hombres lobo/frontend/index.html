@@ -67,13 +67,38 @@
     <footer>
         <div class="footer_container">
             <div>
-                <a href="#">Reglas del juego</a>
+                <a href="#" id="btn-abrir-reglas">Reglas del juego</a>
             </div>
             <div>
                 <p>© Los hombres lobo de Castronegro 2025</p>
             </div>
         </div>
     </footer>
+    <div id="modal-reglas" class="modal">
+        <div class="contenido_modal">
+            <div class="cerrar" id="cerrar-reglas">X</div>
+            <h2>Reglas del juego</h2>
+            <div class="texto-reglas">
+                <h3>Objetivo</h3>
+                <p><strong>Aldeanos:</strong> Descubrir y eliminar a todos los Hombres Lobo.</p>
+                <p><strong>Hombres Lobo:</strong> Devorar a todos los Aldeanos haciéndose pasar por uno de ellos.</p>
+                
+                <h3>La Noche</h3>
+                <p>Todos cierran los ojos. Los Lobos despiertan y eligen una víctima. Vidente y Bruja actúan en secreto.</p>
+                
+                <h3>El Día</h3>
+                <p>El pueblo despierta y descubre quién ha muerto. Los supervivientes debaten y votan para linchar a un sospechoso.</p>
+                
+                <h3>Roles Clave</h3>
+                <ul>
+                    <li><strong>Vidente:</strong> Ve la carta de un jugador cada noche.</li>
+                    <li><strong>Bruja:</strong> Tiene una poción de vida y una de muerte.</li>
+                    <li><strong>Cazador:</strong> Si muere, dispara una última bala.</li>
+                    <li><strong>Cupido:</strong> Enamora a dos jugadores para siempre.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
