@@ -156,21 +156,26 @@ public function iniciar(Request $request, $id)
 
     $partida->load('jugadores');
 
-
     event(new PartidaIniciada($partida->id));
 
     broadcast(new AsignarRoles($partida))->toOthers();
 
+}
+    public function estado($id)
+{
+    $partida = Partida::with('jugadores')->findOrFail($id);
+
     return response()->json([
-        'ok'       => true,
-        'mensaje'  => 'Partida iniciada y roles asignados',
-        'jugadores'=> $partida->jugadores->map(function ($j) {
+        'id'            => $partida->id,
+        'nombre_partida'=> $partida->nombre_partida,
+        'estado'        => $partida->estado,
+        'jugadores'     => $partida->jugadores->map(function ($j) {
             return [
                 'id'   => $j->id,
                 'nick' => $j->nick,
                 'rol'  => $j->pivot->rol_partida,
+                'vivo' => (int) $j->pivot->vivo,
             ];
         }),
     ]);
-}
-}
+}}

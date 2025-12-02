@@ -16,12 +16,24 @@ class AsignarRoles implements ShouldBroadcast
 
     public function __construct(Partida $partida)
     {
-        $this->partida = $partida->load('jugadores');
+        $partida->load('jugadores');
+
+        $this->partida = [
+            'id'        => $partida->id,
+            'jugadores' => $partida->jugadores->map(function ($j) {
+                return [
+                    'id'   => $j->id,
+                    'nick' => $j->nick,
+                    'rol'  => $j->pivot->rol_partida,
+                    'vivo' => (int) $j->pivot->vivo,
+                ];
+            })->toArray(),
+        ];
     }
 
     public function broadcastOn()
     {
-        return new PrivateChannel('lobby.' . $this->partida->id);
+        return new PrivateChannel('lobby.' . $this->partida['id']);
     }
 
     public function broadcastAs()
