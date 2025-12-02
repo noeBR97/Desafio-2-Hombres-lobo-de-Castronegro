@@ -18,7 +18,9 @@
 }
 
 body {
-    background-image: url(../img/DIA.png);
+    background-image: url(../img/NOCHE.png);
+    background-size: cover;
+    background-position: center;
 }
 
 .titulo-juego {
