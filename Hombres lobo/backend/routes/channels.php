@@ -11,7 +11,7 @@ Broadcast::channel('dashboard', function ($user) {
     return true;
 });
 
-Broadcast::channel('game.{partidaID}', function ($user = null, $partidaID) {
+Broadcast::channel('game.{partidaID}', function ($user, $partidaID) {
     if (!$user) {
         return false;
     }

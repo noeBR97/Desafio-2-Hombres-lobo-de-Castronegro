@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Events\JugadorUnido;
 use App\Events\ActualizarListaPartidas;
 use App\Events\JugadorSalio;
+use App\Events\PartidaIniciada; 
 
 class PartidaController extends Controller
 {
@@ -110,4 +111,21 @@ class PartidaController extends Controller
             ], 500);
         }
     }
+
+    public function iniciar(Request $request, $id)
+    {
+        $partida = Partida::findOrFail($id);
+        
+        if ($partida->id_creador_partida !== Auth::id()) {
+            return response()->json(['error' => 'No eres el líder'], 403);
+        }
+
+        $partida->estado = 'en_curso';
+        $partida->save();
+
+        event(new PartidaIniciada($partida->id));
+
+        return response()->json(['message' => 'Partida iniciada']);
+    }
+
 }
