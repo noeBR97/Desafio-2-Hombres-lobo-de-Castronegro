@@ -30,7 +30,7 @@ const estadoPartida = document.getElementById('estado-partida');
 const btnSalir = document.getElementById('btn-salir');
 const btnIniciar = document.getElementById('btn-iniciar');
 
-function getGameIdFromUrl(): string | null {
+export function getGameIdFromUrl(): string | null {
     const params = new URLSearchParams(window.location.search);
     return params.get('id');
 }
@@ -63,6 +63,10 @@ function conectarWebSockets(gameId: string, token: string) {
     .listen('.JugadorSalio', (e: any) => {
         console.log('Jugador salió', e);
         cargarDatosPartida();
+    })
+    .listen('.PartidaIniciada', (e: any) => {
+            console.log("¡La partida ha comenzado!");
+            window.location.href = `/HTML/juego.html?id=${gameId}`;
     });
 
 }
@@ -175,9 +179,21 @@ function controlBotones() {
     }
 
     if (btnIniciar) {
-        btnIniciar.addEventListener('click', () => {
-            console.log("¡Iniciando partida!");
-            alert("Funcionalidad de iniciar partida no implementada.");
+        btnIniciar.addEventListener('click', async () => {
+            const gameId = getGameIdFromUrl();
+            const token = sessionStorage.getItem('auth_token');
+            
+            if (!gameId || !token) return;
+
+            try {
+                await axios.post(`http://localhost:8000/api/partidas/${gameId}/iniciar`, {}, {
+                     headers: { Authorization: `Bearer ${token}` }
+                });
+                
+            } catch (error) {
+                console.error("Error al iniciar:", error);
+                alert("No se pudo iniciar la partida.");
+            }
         });
     }
 }
