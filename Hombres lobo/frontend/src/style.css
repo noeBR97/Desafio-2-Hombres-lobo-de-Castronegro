@@ -28,22 +28,18 @@ body {
   flex-direction: column;
   min-height: 100vh;
   font-family: "Cinzel", serif;
+  background-image: url('./img/FONDO 2.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 main {
   flex: 1;
-  background-image: 
-    url('./img/FONDO.jpg'),
-    url('./img/FONDO\ 2.png');
-  background-size: 
-    contain,
-    cover;
-  background-position: 
-    center, 
-    center;
-  background-repeat: 
-    no-repeat, 
-    no-repeat;
+  background-image: url('./img/FONDO.jpg');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -68,13 +64,6 @@ button {
 button:hover {
   background: var(--color-button-bg-hover);
   box-shadow: 0 5px 15px rgba(0,0,0,0.7);
-}
-
-footer {
-  background-color: var(--color-footer-bg);
-  color: var(--color-text-main);
-  text-align: center;
-  padding: 1rem;
 }
 
 /* modal registro */
@@ -191,6 +180,28 @@ form {
   visibility: visible;
 }
 
+/* footer */
+footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; 
+    padding: 15px 30px;
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-footer-bg);
+    color: var(--color-text-main);
+    font-size: 0.9em;
+}
+
+footer a {
+    color: var(--color-text-muted); 
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: var(--color-text-main); 
+}
+
 /* inputs */
 input {
   width: 100%;
@@ -211,10 +222,6 @@ input:focus {
   border-color: var(--color-button-bg-hover);
   box-shadow: 0 0 10px var(--color-text-muted);
   background-color: var(--color-input-bg);
-}
-
-footer a {
-  color: var(--color-text-main);
 }
 
 .juego-cartas {
