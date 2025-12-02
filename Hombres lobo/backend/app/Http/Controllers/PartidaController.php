@@ -112,6 +112,53 @@ class PartidaController extends Controller
         }
     }
 
+      public function roles($id)
+{
+    $partida = Partida::with('jugadores')->findOrFail($id);
+
+    $jugadores = $partida->jugadores;
+
+    $total = $jugadores->count();
+    if ($total >= 12) {
+        $numLobos = 3;
+    } elseif ($total >= 8) {
+        $numLobos = 2;
+    } else {
+        $numLobos = 1;
+    }
+
+    $roles = [];
+
+    for ($i = 0; $i < $numLobos; $i++) {
+        $roles[] = 'lobo';
+    }
+
+    while (count($roles) < $total) {
+        $roles[] = 'aldeano';
+    }
+
+    shuffle($roles);
+
+    foreach ($jugadores as $index => $jugador) {
+        $partida
+            ->jugadores()
+            ->updateExistingPivot($jugador->id, [
+                'rol_partida' => $roles[$index],
+                'vivo'        => true,
+            ]);
+    }
+
+    $partida->estado = 'noche_1';
+    $partida->fecha_inicio = now();
+    $partida->save();
+
+    return response()->json([
+        'ok' => true,
+        'mensaje' => 'Roles asignados correctamente',
+        'estado' => $partida->estado,
+    ]);
+}
+
     public function iniciar(Request $request, $id)
     {
         $partida = Partida::findOrFail($id);
@@ -128,4 +175,4 @@ class PartidaController extends Controller
         return response()->json(['message' => 'Partida iniciada']);
     }
 
-}
+  }
