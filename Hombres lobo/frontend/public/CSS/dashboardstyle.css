@@ -39,7 +39,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Cinzel', serif; 
-    color: var(--color-text-muted);
+    color: var(--color-text-main);
 }
 
 .dashboard-container {
@@ -543,4 +543,66 @@ footer a:hover {
 /* ojo abierto (negro) */
 .icono-ojo.activo {
     background-image: url('data:image/svg+xml;utf8,<svg fill="%23000000" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7m0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></svg>');
+}
+
+.modal-contenido-reglas {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--color-page-bg);
+    border: 2px solid var(--color-text-muted);
+    border-radius: 10px;
+    padding: 2rem;
+    color: var(--color-text-main);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    z-index: 1000;
+    max-width: 90%;
+    width: 400px;
+    text-align: center;
+}
+
+.cerrar-reglas {
+    margin-left: 90%;
+    color: var(--color-text-muted);
+    font-family: 'Cinzel', serif;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.cerrar-reglas:hover {
+    color: var(--color-button-bg-hover);
+}
+
+.texto-reglas {
+    text-align: left;
+    max-height: 400px; 
+    overflow-y: auto; 
+    padding-right: 10px;
+    margin-top: 15px;
+    font-family: 'Crimson Text', serif;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-text-muted) transparent;
+}
+
+.texto-reglas h3 {
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border);
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-family: 'Cinzel', serif;
+}
+
+.texto-reglas p {
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.texto-reglas li {
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.texto-reglas ul {
+    padding-left: 20px;
 }
