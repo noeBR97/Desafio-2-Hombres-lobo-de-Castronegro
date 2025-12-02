@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     libzip-dev \
-  && docker-php-ext-install pdo pdo_mysql zip \
+  && docker-php-ext-install pdo pdo_mysql zip pcntl \
   && rm -rf /var/lib/apt/lists/*
 
 # 2. Carpeta de trabajo

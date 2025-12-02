@@ -5,8 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; 
 class Partida extends Model
 {
     use HasFactory;
@@ -27,4 +26,10 @@ class Partida extends Model
         return $this->belongsTo(User::class, 'id_creador_partida');
     }
 
+    public function jugadores(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'jugadores_partida', 'id_partida', 'id_usuario')
+                    ->withPivot('es_bot', 'vivo');
+    }
+    
 }

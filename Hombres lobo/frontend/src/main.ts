@@ -78,6 +78,20 @@ document.addEventListener('DOMContentLoaded', () => {
       validMsg.classList.add('visible')
 
       limpiarFormulario()
+
+      //login automatico tras registro
+      const loginRes = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'},
+        body: JSON.stringify({ correo, clave })
+      })
+      const loginData = await loginRes.json()
+      if (loginRes.ok && loginData.token) {
+        sessionStorage.setItem('auth_token', loginData.token)
+        sessionStorage.setItem('user', JSON.stringify(loginData.user))
+        window.location.href = '/HTML/dashboard.html'
+      }
     } else {
       console.log('Error: ', respuesta)
       errorMsg.textContent = 'Error al registrar el usuario.'
@@ -141,7 +155,7 @@ formLogin?.addEventListener('submit', async (e) => {
   const clave = inputClave.value
 
   try {
-  const res = await fetch('http://localhost:8000/api/login', {
+  const res = await fetch('/api/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -162,7 +176,7 @@ formLogin?.addEventListener('submit', async (e) => {
   }
 
   // Guardar token y usuario
-  localStorage.setItem('auth_token', data.token);
+  sessionStorage.setItem('auth_token', data.token);
   sessionStorage.setItem('user', JSON.stringify(data.user));
 
   // (opcional) Si quieres solo loguear si hay token, pero sin saltar alerta chunga

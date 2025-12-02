@@ -11,6 +11,8 @@
     "test": "echo \"Tests del frontend ejecutándose...\" && exit 0"
   },
   "devDependencies": {
+    "laravel-echo": "^2.2.6",
+    "pusher-js": "^8.4.0",
     "typescript": "~5.9.3",
     "vite": "^7.2.2"
   },

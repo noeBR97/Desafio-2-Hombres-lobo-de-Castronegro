@@ -1,4 +1,3 @@
-import axios from 'axios'
 import api from '../api'
 
 const formulario = document.getElementById('formulario_registro') as HTMLFormElement
@@ -36,7 +35,7 @@ export async function validarUserName(): Promise<boolean> {
   }
 
   try {
-    const respuesta = await api.post('http://localhost:8000/api/validar-username', {
+    const respuesta = await api.post('/api/validar-username', {
       nick: userName
     })
 
@@ -62,7 +61,7 @@ export async function validarEmail(): Promise<boolean> {
     const errorMsgEmail = document.getElementById('error_msg_email') as HTMLElement
 
     try {
-        const respuesta = await axios.post('http://localhost:8000/api/validar-email', {
+        const respuesta = await api.post('/api/validar-email', {
             correo: correo
         })
 
@@ -100,7 +99,7 @@ export function limpiarFormulario() {
 
 export async function registrarUsuario(datos: any) {
   try {
-    const res = await api.post('http://localhost:8000/api/usuarios/registrar', datos)
+    const res = await api.post('/api/usuarios/registrar', datos)
     return res.data
   } catch (error: any) {
     console.error("Error en registrarUsuario:", error)
