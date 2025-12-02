@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
     Schema::create('jugadores_partida', function (Blueprint $table) {
@@ -17,13 +14,11 @@ return new class extends Migration
         $table->foreignId('id_usuario')->nullable()->constrained('users')->onDelete('cascade');
         $table->boolean('es_bot')->default(false);
         $table->boolean('vivo')->default(true);
+        $table->string('rol_partida');
         $table->timestamps();
     });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('jugadores_partida');

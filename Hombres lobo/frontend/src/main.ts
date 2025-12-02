@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       limpiarFormulario()
 
       //login automatico tras registro
-      const loginRes = await fetch('http://localhost:8000/api/login', {
+      const loginRes = await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'},
@@ -155,7 +155,7 @@ formLogin?.addEventListener('submit', async (e) => {
   const clave = inputClave.value
 
   try {
-  const res = await fetch('http://localhost:8000/api/login', {
+  const res = await fetch('/api/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

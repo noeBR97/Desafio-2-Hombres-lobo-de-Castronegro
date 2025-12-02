@@ -16,9 +16,9 @@ class PartidaController extends Controller
     public function index()
     {
         $partidas = Partida::with('jugadores')
-                            ->where('estado', 'en_espera')
-                            ->orderBy('created_at', 'desc') 
-                            ->get();
+            ->where('estado', 'en_espera')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return response()->json($partidas);
     }
@@ -32,13 +32,17 @@ class PartidaController extends Controller
         $user = Auth::user();
 
         $partida = Partida::create([
-            'nombre_partida' => $validatedData['nombre_partida'],
-            'id_creador_partida' => $user->id, 
-            'estado' => 'en_espera',
-            'numero_jugadores' => 0, 
+            'nombre_partida'       => $validatedData['nombre_partida'],
+            'id_creador_partida'   => $user->id,
+            'estado'               => 'en_espera',
+            'numero_jugadores'     => 0
         ]);
 
-        $partida->jugadores()->attach($user->id, ['es_bot' => false, 'vivo' => true]);
+        $partida->jugadores()->attach($user->id, [
+            'es_bot'      => false,
+            'vivo'        => true,
+            'rol_partida' => 'sin_asignar',
+        ]);
 
         $partida->load('jugadores');
         
@@ -60,14 +64,14 @@ class PartidaController extends Controller
         $partida = Partida::findOrFail($id);
 
         if (!$partida->jugadores()->where('id_usuario', $user->id)->exists()) {
-            
+
             $partida->jugadores()->attach($user->id, [
-                'es_bot' => false, 
-                'vivo' => true
+                'es_bot'      => false,
+                'vivo'        => true,
+                'rol_partida' => 'sin_asignar',
             ]);
 
             $partida->increment('numero_jugadores');
-
         }
         
         $partida->load('jugadores');

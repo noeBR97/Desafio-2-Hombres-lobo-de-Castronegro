@@ -6,7 +6,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PartidaController;
-use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Broadcast; 
+use App\Models\JugadorPartida;
+use App\Models\VotoPartida;
+use Carbon\Carbon;
 use App\Http\Controllers\ChatController;
 
 Route::get('/user', function (Request $request) {
@@ -50,5 +53,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('usuarios/elegir-avatar', [UsuarioController::class, 'elegirAvatar']);
     Route::put('/usuario/update', [UsuarioController::class, 'update']);
 });
-Route::middleware(['auth:sanctum', 'admin'])->get('/users',
+Route::middleware(['auth:sanctum', 'admin'])->get('/users', 
 [UsuarioController::class, 'index']);
