@@ -297,10 +297,9 @@ footer {
     padding: 15px 30px;
     border-top: 1px solid var(--color-border);
     background-color: var(--color-footer-bg);
-    max-width: 1200px;
-    margin: 20px auto 0 auto; 
     color: var(--color-text-main);
     font-size: 0.9em;
+    font-family: 'Cinzel', serif;
 }
 
 footer a {
