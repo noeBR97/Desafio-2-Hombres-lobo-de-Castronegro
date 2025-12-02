@@ -114,7 +114,7 @@ async function cargarJuego() {
     }
 
     try {
-        const response = await axios.get<Juego>(`http://localhost:8000/api/partidas/${partidaID}`, {
+        const response = await api.get<Juego>(`/api/partidas/${partidaID}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
