@@ -187,7 +187,7 @@ function controlBotones() {
             if (!gameId || !token) return;
 
             try {
-                await axios.post(`http://localhost:8000/api/partidas/${gameId}/iniciar`, {}, {
+                await api.post(`/api/partidas/${gameId}/iniciar`, {}, {
                      headers: { Authorization: `Bearer ${token}` }
                 });
                 
