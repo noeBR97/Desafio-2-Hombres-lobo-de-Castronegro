@@ -16,19 +16,16 @@ class AsignarRoles implements ShouldBroadcast
 
     public function __construct(Partida $partida)
     {
-        // Enviamos la partida con sus jugadores al front
         $this->partida = $partida->load('jugadores');
     }
 
     public function broadcastOn()
     {
-        // Mismo canal que usas en lobby.ts: `lobby.${gameId}`
         return new PrivateChannel('lobby.' . $this->partida->id);
     }
 
     public function broadcastAs()
     {
-        // Mismo nombre que escuchas en el front: `.PartidaIniciada`
-        return 'PartidaIniciada';
+        return 'AsignarRoles';
     }
 }

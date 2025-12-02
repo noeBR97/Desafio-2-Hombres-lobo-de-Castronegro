@@ -183,14 +183,12 @@ function controlBotones() {
         btnIniciar.addEventListener('click', async () => {
             const gameId = getGameIdFromUrl();
             const token = sessionStorage.getItem('auth_token');
-            
             if (!gameId || !token) return;
 
             try {
                 await api.post(`/api/partidas/${gameId}/iniciar`, {}, {
                      headers: { Authorization: `Bearer ${token}` }
                 });
-                
             } catch (error) {
                 console.error("Error al iniciar:", error);
                 alert("No se pudo iniciar la partida.");

@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Events\JugadorUnido;
 use App\Events\ActualizarListaPartidas;
 use App\Events\JugadorSalio;
-use App\Events\PartidaIniciada; 
+use App\Events\PartidaIniciada;
+use App\Events\AsignarRoles;  
 
 class PartidaController extends Controller
 {
@@ -112,12 +113,15 @@ class PartidaController extends Controller
         }
     }
 
-      public function roles($id)
+public function iniciar(Request $request, $id)
 {
     $partida = Partida::with('jugadores')->findOrFail($id);
 
-    $jugadores = $partida->jugadores;
+    if ($partida->id_creador_partida !== Auth::id()) {
+        return response()->json(['error' => 'No eres el líder'], 403);
+    }
 
+    $jugadores = $partida->jugadores;
     $total = $jugadores->count();
     if ($total >= 12) {
         $numLobos = 3;
@@ -140,39 +144,33 @@ class PartidaController extends Controller
     shuffle($roles);
 
     foreach ($jugadores as $index => $jugador) {
-        $partida
-            ->jugadores()
-            ->updateExistingPivot($jugador->id, [
-                'rol_partida' => $roles[$index],
-                'vivo'        => true,
-            ]);
+        $partida->jugadores()->updateExistingPivot($jugador->id, [
+            'rol_partida' => $roles[$index],
+            'vivo'        => true,
+        ]);
     }
 
-    $partida->estado = 'noche_1';
+    $partida->estado = 'en_curso';
     $partida->fecha_inicio = now();
     $partida->save();
 
+    $partida->load('jugadores');
+
+
+    event(new PartidaIniciada($partida->id));
+
+    broadcast(new AsignarRoles($partida))->toOthers();
+
     return response()->json([
-        'ok' => true,
-        'mensaje' => 'Roles asignados correctamente',
-        'estado' => $partida->estado,
+        'ok'       => true,
+        'mensaje'  => 'Partida iniciada y roles asignados',
+        'jugadores'=> $partida->jugadores->map(function ($j) {
+            return [
+                'id'   => $j->id,
+                'nick' => $j->nick,
+                'rol'  => $j->pivot->rol_partida,
+            ];
+        }),
     ]);
 }
-
-    public function iniciar(Request $request, $id)
-    {
-        $partida = Partida::findOrFail($id);
-        
-        if ($partida->id_creador_partida !== Auth::id()) {
-            return response()->json(['error' => 'No eres el líder'], 403);
-        }
-
-        $partida->estado = 'en_curso';
-        $partida->save();
-
-        event(new PartidaIniciada($partida->id));
-
-        return response()->json(['message' => 'Partida iniciada']);
-    }
-
-  }
+}

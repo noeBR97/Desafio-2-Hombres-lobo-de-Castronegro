@@ -51,7 +51,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/usuarios/actualizar-imagen', [UsuarioController::class, 'actualizarImagenPerfil']);
     Route::post('usuarios/elegir-avatar', [UsuarioController::class, 'elegirAvatar']);
     Route::put('/usuario/update', [UsuarioController::class, 'update']);
-    Route::post('/partidas/{id}/roles', [PartidaController::class, 'roles']);
 
 });
 Route::middleware(['auth:sanctum', 'admin'])->get('/users', 
