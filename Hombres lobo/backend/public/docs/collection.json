@@ -10,7 +10,7 @@
     ],
     "info": {
         "name": "Laravel API Documentation",
-        "_postman_id": "07423439-927f-45df-b8eb-8806d57097c9",
+        "_postman_id": "987bdc32-1f96-473d-ac6d-f074f56313bb",
         "description": "",
         "schema": "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json"
     },
@@ -587,7 +587,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"nombre\":\"vmqeopfuudtdsufvyvddq\",\"apellido1\":\"amniihfqcoynlazghdtqt\",\"apellido2\":\"qxbajwbpilpmufinllwlo\",\"nick\":\"auydlsmsjuryvojcybzvr\",\"correo\":\"byickznkygloigmkwxphl\",\"clave\":\"vazjrcnfbaqywuxhgjjmzuxjubqouzswiwxtrkimfcatbxspzmrazsroyjpxmqesedyghenqco\",\"rol_corp\":true}"
+                            "raw": "{\"nombre\":\"vmqeopfuudtdsufvyvddq\",\"apellido1\":\"amniihfqcoynlazghdtqt\",\"apellido2\":\"qxbajwbpilpmufinllwlo\",\"nick\":\"auydlsmsjuryvojcybzvr\",\"correo\":\"byickznkygloigmkwxphl\",\"clave\":\"vazjrcnfbaqywuxhgjjmzuxjubqouzswiwxtrkimfcatbxspzmrazsroyjpxmqesedyghenqco\",\"rol_corp\":false}"
                         },
                         "description": "",
                         "auth": {
@@ -907,6 +907,62 @@
                     "response": []
                 },
                 {
+                    "name": "GET api\/partidas\/{id}\/estado",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/partidas\/:id\/estado",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/partidas\/:id\/estado",
+                            "variable": [
+                                {
+                                    "id": "id",
+                                    "key": "id",
+                                    "value": "consequatur",
+                                    "description": "The ID of the partida."
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 401,
+                            "body": "{\"message\":\"Unauthenticated.\"}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
                     "name": "POST api\/usuarios\/actualizar-imagen",
                     "request": {
                         "url": {
@@ -1004,54 +1060,6 @@
                         }
                     },
                     "response": []
-                },
-                {
-                    "name": "GET api\/users",
-                    "request": {
-                        "url": {
-                            "host": "{{baseUrl}}",
-                            "path": "api\/users",
-                            "query": [],
-                            "raw": "{{baseUrl}}\/api\/users"
-                        },
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application\/json"
-                            },
-                            {
-                                "key": "Accept",
-                                "value": "application\/json"
-                            }
-                        ],
-                        "body": null,
-                        "description": "",
-                        "auth": {
-                            "type": "noauth"
-                        }
-                    },
-                    "response": [
-                        {
-                            "header": [
-                                {
-                                    "key": "cache-control",
-                                    "value": "no-cache, private"
-                                },
-                                {
-                                    "key": "content-type",
-                                    "value": "application\/json"
-                                },
-                                {
-                                    "key": "access-control-allow-origin",
-                                    "value": "*"
-                                }
-                            ],
-                            "code": 401,
-                            "body": "{\"message\":\"Unauthenticated.\"}",
-                            "name": ""
-                        }
-                    ]
                 }
             ]
         }
