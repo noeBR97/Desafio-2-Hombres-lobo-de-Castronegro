@@ -179,7 +179,7 @@ function controlBotones() {
         });
     }
 
-        if (btnIniciar) {
+    if (btnIniciar) {
         btnIniciar.addEventListener('click', async () => {
             const gameId = getGameIdFromUrl();
             const token = sessionStorage.getItem('auth_token');

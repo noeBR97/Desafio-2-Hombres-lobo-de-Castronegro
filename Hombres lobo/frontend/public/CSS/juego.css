@@ -55,15 +55,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-
     font-size: clamp(1.4rem, 2.4vw, 3rem);
     font-weight: 700;
     text-shadow: 
         0 0 4px #000,
         0 0 8px #000,
         0 0 12px #000;
-
-
     transition: 0.3s ease;
     cursor: pointer;
     background-image: url(../img/CARTA-BACK.png);

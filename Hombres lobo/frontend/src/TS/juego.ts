@@ -89,9 +89,14 @@ function conectarWebSockets(gameId: string, token: string) {
         });
 }
 
-btnEnviarMensaje?.addEventListener('click', async () => {
+let enviando = false;
+
+async function enviarMensaje() {
     const contenido = inputMensaje.value.trim();
     if (!contenido || !partidaID || !token) return;
+    if (enviando) return;
+    enviando = true;
+    if (btnEnviarMensaje) btnEnviarMensaje.disabled = true;
     try {
         await api.post('/api/chat/send-private', {
             contenido,
@@ -106,8 +111,23 @@ btnEnviarMensaje?.addEventListener('click', async () => {
     } catch (error) {
         const axiosError = error as AxiosError;
         console.error('Error enviando mensaje:', axiosError.message);
+    } finally {
+        enviando = false;
+        if (btnEnviarMensaje) btnEnviarMensaje.disabled = false;
     }
-})
+}
+
+btnEnviarMensaje?.addEventListener('click', () => {
+    enviarMensaje();
+});
+
+inputMensaje?.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        enviarMensaje();
+    }
+});
+
 
 async function cargarJuego() {
     if (!partidaID || !token) {
