@@ -45,6 +45,33 @@ const botonSelectRol = document.getElementById('rol-select') as HTMLSelectElemen
 const listaEstadisticasRol = document.getElementById('estadisticas-rol-list') as HTMLUListElement;
 const divEditarUsuario = document.getElementById('editar-usuario') as HTMLDivElement;
 
+function configurarModalReglas() {
+    const btnAbrir = document.getElementById('btn-abrir-reglas');
+    const modalReglas = document.getElementById('modal-reglas');
+    const btnCerrar = document.getElementById('cerrar-reglas'); 
+
+    if (btnAbrir && modalReglas) {
+        btnAbrir.addEventListener('click', (e) => {
+            e.preventDefault(); 
+            modalReglas.style.display = 'flex'; 
+        });
+    }
+
+    if (btnCerrar && modalReglas) {
+        btnCerrar.addEventListener('click', () => {
+            modalReglas.style.display = 'none';
+        });
+    }
+
+    if (modalReglas) {
+        window.addEventListener('click', (e) => {
+            if (e.target === modalReglas) {
+                modalReglas.style.display = 'none';
+            }
+        });
+    }
+}
+
 function conectarDashboardWebSocket() {
     const token = sessionStorage.getItem('auth_token');
     if (!token) return;
@@ -434,6 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     mostrarFormularioEditarUsuario();
     editarUsuario();
+
+    configurarModalReglas();
 
     botonElegirAvatar?.addEventListener('click', abrirSelectorAvatares)
 
