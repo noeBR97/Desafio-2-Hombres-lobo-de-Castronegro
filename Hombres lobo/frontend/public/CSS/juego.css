@@ -39,12 +39,12 @@ body {
 }
 
 .juego-jugadores-chat {
-    flex: 3; 
+    flex: 3;
     display: grid;
-    grid-template-columns: repeat(5, 1fr); 
-    grid-template-rows: repeat(6, 1fr);
     gap: 10px;
     height: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-auto-rows: minmax(160px, auto);
 }
 
 .jugador {
@@ -57,10 +57,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: clamp(1.4rem, 2.4vw, 3rem);
+    font-weight: 700;
+    text-shadow: 
+        0 0 4px #000,
+        0 0 8px #000,
+        0 0 12px #000;
     transition: 0.3s ease;
     cursor: pointer;
-    background-image: url(../img/CARTA-BACK.png);;
+    background-image: url(../img/CARTA-BACK.png);
     background-size: cover;
 }
 

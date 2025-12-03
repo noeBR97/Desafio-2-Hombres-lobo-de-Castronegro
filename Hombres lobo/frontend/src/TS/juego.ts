@@ -9,6 +9,8 @@ import { getGameIdFromUrl } from "./lobby";
 interface Usuario {
     id: number;
     nick: string;
+    rol: String;
+    vivo: Number;
 }
 
 interface Juego {
@@ -87,9 +89,14 @@ function conectarWebSockets(gameId: string, token: string) {
         });
 }
 
-btnEnviarMensaje?.addEventListener('click', async () => {
+let enviando = false;
+
+async function enviarMensaje() {
     const contenido = inputMensaje.value.trim();
     if (!contenido || !partidaID || !token) return;
+    if (enviando) return;
+    enviando = true;
+    if (btnEnviarMensaje) btnEnviarMensaje.disabled = true;
     try {
         await api.post('/api/chat/send-private', {
             contenido,
@@ -104,8 +111,23 @@ btnEnviarMensaje?.addEventListener('click', async () => {
     } catch (error) {
         const axiosError = error as AxiosError;
         console.error('Error enviando mensaje:', axiosError.message);
+    } finally {
+        enviando = false;
+        if (btnEnviarMensaje) btnEnviarMensaje.disabled = false;
     }
-})
+}
+
+btnEnviarMensaje?.addEventListener('click', () => {
+    enviarMensaje();
+});
+
+inputMensaje?.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        enviarMensaje();
+    }
+});
+
 
 async function cargarJuego() {
     if (!partidaID || !token) {
@@ -114,7 +136,7 @@ async function cargarJuego() {
     }
 
     try {
-        const response = await api.get<Juego>(`/api/partidas/${partidaID}`, {
+        const response = await api.get<Juego>(`/api/partidas/${partidaID}/estado`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
@@ -139,7 +161,6 @@ function renderizarJugadores(jugadores: Usuario[]) {
     jugadores.forEach(jugador => {
         crearCartaJugador(jugador);
     });
-
 }
 
 function agregarJugadorAlTablero(jugador: Usuario) {
@@ -159,9 +180,48 @@ function agregarJugadorAlTablero(jugador: Usuario) {
 
 function crearCartaJugador(jugador: Usuario) {
     if (!tableroJugadores) return;
+
     const div = document.createElement('div');
     div.className = 'jugador';
-    div.innerHTML = `<span>${jugador.nick}</span>`;
+
+    const span = document.createElement('span');
+    span.textContent = jugador.nick;
+
+    const userJson = sessionStorage.getItem('user');
+    let miId: number | null = null;
+
+    if (userJson) {
+        const user = JSON.parse(userJson) as { id: number; nick: string };
+        miId = user.id;
+    }
+
+    const miRol = sessionStorage.getItem('mi_rol');
+
+    const esPropio = miId !== null && jugador.id === miId;
+    const estaVivo = jugador.vivo === 1;
+
+    let bg = '';
+
+    if (esPropio) {
+        const rol = miRol ?? jugador.rol;
+        if (rol === 'lobo') {
+            bg = "url('../img/CARTA-LOBO.png')";
+        } else if (rol === 'aldeano') {
+            bg = "url('../img/CARTA-ALDEANO.png')";
+        }
+    } else if (!estaVivo) {
+        if (jugador.rol === 'lobo') {
+            bg = "url('../img/CARTA-LOBO.png')";
+        } else if (jugador.rol === 'aldeano') {
+            bg = "url('../img/CARTA-ALDEANO.png')";
+        }
+    }
+
+    if (bg) {
+        div.style.backgroundImage = bg;
+    }
+
+    div.appendChild(span);
     tableroJugadores.appendChild(div);
 }
 
