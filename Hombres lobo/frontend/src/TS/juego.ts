@@ -31,6 +31,10 @@ const partidaID = getGameIdFromUrl();
 const token = sessionStorage.getItem('auth_token');
 const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 
+let fase: 'dia' | 'noche' = 'noche';
+let tiempoRestante = 60; 
+let intervalo: any;
+
 if (!partidaID || !token) {
     console.error('ID de partida o token no disponibles');
 }
@@ -225,8 +229,38 @@ function crearCartaJugador(jugador: Usuario) {
     tableroJugadores.appendChild(div);
 }
 
+function iniciarContador() {
+    const contador = document.getElementById('contador') as HTMLHeadingElement;
+
+    intervalo = setInterval(() => {
+        contador.textContent = `Cambio de fase en: ${tiempoRestante}s`;
+        tiempoRestante--;
+
+        if (tiempoRestante < 0) {
+            clearInterval(intervalo);
+            cambiarFase();
+        }
+    }, 1000);
+}
+
+function cambiarFase() {
+    const body = document.body;
+
+    if (fase === 'dia') {
+        fase = 'noche';
+        body.style.backgroundImage = "url('../img/NOCHE.png')";
+    } else {
+        fase = 'dia';
+        body.style.backgroundImage = "url('../img/DIA.png')";
+    }
+
+    tiempoRestante = 60;
+    iniciarContador();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     if (!partidaID || !token) return;
     conectarWebSockets(partidaID, token);
     cargarJuego();
+    iniciarContador();
 });
