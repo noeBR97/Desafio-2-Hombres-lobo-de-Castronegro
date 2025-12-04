@@ -40,6 +40,23 @@ return new class extends Migration
                 $table->string('rol_corp')->default('usuario')->after('clave');
             }
 
+            if (!Schema::hasColumn('users', 'partidas_jugadas')) {
+                $table->unsignedInteger('partidas_jugadas')
+                      ->default(0)
+                      ->after('remember_token');
+            }
+
+            if (!Schema::hasColumn('users', 'partidas_ganadas')) {
+                $table->unsignedInteger('partidas_ganadas')
+                      ->default(0)
+                      ->after('partidas_jugadas');
+            }
+
+            if (!Schema::hasColumn('users', 'partidas_perdidas')) {
+                $table->unsignedInteger('partidas_perdidas')
+                      ->default(0)
+                      ->after('partidas_ganadas');
+            }
         });
     }
 
@@ -73,6 +90,18 @@ return new class extends Migration
 
             if (Schema::hasColumn('users', 'rol_corp')) {
                 $table->dropColumn('rol_corp');
+            }
+
+            if (Schema::hasColumn('users', 'partidas_jugadas')) {
+                $table->dropColumn('partidas_jugadas');
+            }
+
+            if (Schema::hasColumn('users', 'partidas_ganadas')) {
+                $table->dropColumn('partidas_ganadas');
+            }
+
+            if (Schema::hasColumn('users', 'partidas_perdidas')) {
+                $table->dropColumn('partidas_perdidas');
             }
         });
     }

@@ -1,6 +1,6 @@
-import axios from 'axios';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import api from '../api';
 
 (window as any).Pusher = Pusher;
 //import { validarPass } from './validarFormularioRegistro';
@@ -45,6 +45,33 @@ const botonSelectRol = document.getElementById('rol-select') as HTMLSelectElemen
 const listaEstadisticasRol = document.getElementById('estadisticas-rol-list') as HTMLUListElement;
 const divEditarUsuario = document.getElementById('editar-usuario') as HTMLDivElement;
 
+function configurarModalReglas() {
+    const btnAbrir = document.getElementById('btn-abrir-reglas');
+    const modalReglas = document.getElementById('modal-reglas');
+    const btnCerrar = document.getElementById('cerrar-reglas'); 
+
+    if (btnAbrir && modalReglas) {
+        btnAbrir.addEventListener('click', (e) => {
+            e.preventDefault(); 
+            modalReglas.style.display = 'flex'; 
+        });
+    }
+
+    if (btnCerrar && modalReglas) {
+        btnCerrar.addEventListener('click', () => {
+            modalReglas.style.display = 'none';
+        });
+    }
+
+    if (modalReglas) {
+        window.addEventListener('click', (e) => {
+            if (e.target === modalReglas) {
+                modalReglas.style.display = 'none';
+            }
+        });
+    }
+}
+
 function conectarDashboardWebSocket() {
     const token = sessionStorage.getItem('auth_token');
     if (!token) return;
@@ -57,7 +84,7 @@ function conectarDashboardWebSocket() {
         wssPort: 8085,
         forceTLS: false,
         enabledTransports: ['ws', 'wss'],
-        authEndpoint: 'http://localhost:8000/api/broadcasting/auth',
+        authEndpoint: '/api/broadcasting/auth',
         auth: {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -91,7 +118,7 @@ async function cargarDatosUsuario() {
   }
 
   try {
-    const response = await axios.get('http://localhost:8000/api/me', {
+    const response = await api.get('/api/me', {
       headers: {
         'Authorization': `Bearer ${sessionStorage.getItem('auth_token')}`
       }
@@ -164,7 +191,7 @@ function controlBotones() {
 
             try {
 
-                const response = await axios.post('http://localhost:8000/api/partidas', 
+                const response = await api.post('/api/partidas', 
                 { nombre_partida: nombrePartida }, 
                 {
                     headers: {
@@ -205,7 +232,7 @@ function controlBotones() {
 
                 if (gameId && token) {
                     try {
-                        await axios.post(`http://localhost:8000/api/partidas/${gameId}/unirse`, {}, {
+                        await api.post(`/api/partidas/${gameId}/unirse`, {}, {
                             headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'Accept': 'application/json'
@@ -249,7 +276,7 @@ function subirImagen() {
       return
     }
     try {
-      const response = await axios.post('http://localhost:8000/api/usuarios/actualizar-imagen', formData, {
+      const response = await api.post('/api/usuarios/actualizar-imagen', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -284,7 +311,7 @@ async function abrirSelectorAvatares() {
   listaAvatares.innerHTML = ''
 
   try {
-    const response = await axios.get('http://localhost:8000/api/usuarios/avatares')
+    const response = await api.get('/api/usuarios/avatares')
   const avatares: string[] = response.data
 
   avatares.forEach((avatarNombre: string) => {
@@ -305,7 +332,7 @@ async function elegirAvatar(nombreAvatar: string) {
   if (!token) return window.location.href = '/index.html'
 
   try {
-    await axios.post('http://localhost:8000/api/usuarios/elegir-avatar', 
+    await api.post('/api/usuarios/elegir-avatar', 
     { avatar: nombreAvatar },
     { headers: {'Authorization': `Bearer ${token}`}})
 
@@ -349,7 +376,7 @@ function editarUsuario() {
       if (nuevoNick) data.nick = nuevoNick;
       if (nuevaClave) data.clave = nuevaClave; 
 
-      const response = await axios.put('http://localhost:8000/api/usuario/update', data, {
+      const response = await api.put('/api/usuario/update', data, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -398,7 +425,7 @@ async function cargarPartidas() {
   if (!partidasUsuario) return;
 
   try {
-    const response = await axios.get('http://localhost:8000/api/partidas', {
+    const response = await api.get('/api/partidas', {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -434,6 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     mostrarFormularioEditarUsuario();
     editarUsuario();
+
+    configurarModalReglas();
 
     botonElegirAvatar?.addEventListener('click', abrirSelectorAvatares)
 

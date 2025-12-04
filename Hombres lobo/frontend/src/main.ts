@@ -14,6 +14,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const modal = document.querySelector('.modal') as HTMLDivElement
   const overlay =document.querySelector('.modal_overlay') as HTMLDivElement
   const cerrar = document.querySelector('.cerrar') as HTMLSpanElement
+  const btnReglas = document.getElementById('btn-abrir-reglas');
+  const modalReglas = document.getElementById('modal-reglas');
+  const cerrarReglas = document.getElementById('cerrar-reglas');
+
+  if (btnReglas && modalReglas && overlay) {
+    btnReglas.addEventListener('click', (e) => {
+      e.preventDefault();
+      modalReglas.style.display = 'block';
+      overlay.style.display = 'block';
+    });
+  }
+
+  if (cerrarReglas && modalReglas && overlay) {
+    cerrarReglas.addEventListener('click', () => {
+      modalReglas.style.display = 'none';
+      overlay.style.display = 'none';
+    });
+  }
 
   botonRegistro.addEventListener('click', () => {
     modal.style.display = 'block'
@@ -80,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
       limpiarFormulario()
 
       //login automatico tras registro
-      const loginRes = await fetch('http://localhost:8000/api/login', {
+      const loginRes = await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'},
@@ -154,8 +172,10 @@ formLogin?.addEventListener('submit', async (e) => {
   const correo = inputCorreo.value.trim()
   const clave = inputClave.value
 
+  if (modalReglas) modalReglas.style.display = 'none';
+
   try {
-  const res = await fetch('http://localhost:8000/api/login', {
+  const res = await fetch('/api/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

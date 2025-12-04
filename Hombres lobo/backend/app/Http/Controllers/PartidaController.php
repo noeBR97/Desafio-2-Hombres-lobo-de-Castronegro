@@ -9,16 +9,17 @@ use Illuminate\Support\Facades\Auth;
 use App\Events\JugadorUnido;
 use App\Events\ActualizarListaPartidas;
 use App\Events\JugadorSalio;
-use App\Events\PartidaIniciada; 
+use App\Events\PartidaIniciada;
+use App\Events\AsignarRoles;  
 
 class PartidaController extends Controller
 {
     public function index()
     {
         $partidas = Partida::with('jugadores')
-                            ->where('estado', 'en_espera')
-                            ->orderBy('created_at', 'desc') 
-                            ->get();
+            ->where('estado', 'en_espera')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return response()->json($partidas);
     }
@@ -32,13 +33,17 @@ class PartidaController extends Controller
         $user = Auth::user();
 
         $partida = Partida::create([
-            'nombre_partida' => $validatedData['nombre_partida'],
-            'id_creador_partida' => $user->id, 
-            'estado' => 'en_espera',
-            'numero_jugadores' => 0, 
+            'nombre_partida'       => $validatedData['nombre_partida'],
+            'id_creador_partida'   => $user->id,
+            'estado'               => 'en_espera',
+            'numero_jugadores'     => 0
         ]);
 
-        $partida->jugadores()->attach($user->id, ['es_bot' => false, 'vivo' => true]);
+        $partida->jugadores()->attach($user->id, [
+            'es_bot'      => false,
+            'vivo'        => true,
+            'rol_partida' => 'sin_asignar',
+        ]);
 
         $partida->load('jugadores');
         
@@ -60,14 +65,14 @@ class PartidaController extends Controller
         $partida = Partida::findOrFail($id);
 
         if (!$partida->jugadores()->where('id_usuario', $user->id)->exists()) {
-            
+
             $partida->jugadores()->attach($user->id, [
-                'es_bot' => false, 
-                'vivo' => true
+                'es_bot'      => false,
+                'vivo'        => true,
+                'rol_partida' => 'sin_asignar',
             ]);
 
             $partida->increment('numero_jugadores');
-
         }
         
         $partida->load('jugadores');
@@ -108,20 +113,69 @@ class PartidaController extends Controller
         }
     }
 
-    public function iniciar(Request $request, $id)
-    {
-        $partida = Partida::findOrFail($id);
-        
-        if ($partida->id_creador_partida !== Auth::id()) {
-            return response()->json(['error' => 'No eres el líder'], 403);
-        }
+public function iniciar(Request $request, $id)
+{
+    $partida = Partida::with('jugadores')->findOrFail($id);
 
-        $partida->estado = 'en_curso';
-        $partida->save();
-
-        event(new PartidaIniciada($partida->id));
-
-        return response()->json(['message' => 'Partida iniciada']);
+    if ($partida->id_creador_partida !== Auth::id()) {
+        return response()->json(['error' => 'No eres el líder'], 403);
     }
 
+    $jugadores = $partida->jugadores;
+    $total = $jugadores->count();
+    if ($total >= 12) {
+        $numLobos = 3;
+    } elseif ($total >= 8) {
+        $numLobos = 2;
+    } else {
+        $numLobos = 1;
+    }
+
+    $roles = [];
+
+    for ($i = 0; $i < $numLobos; $i++) {
+        $roles[] = 'lobo';
+    }
+
+    while (count($roles) < $total) {
+        $roles[] = 'aldeano';
+    }
+
+    shuffle($roles);
+
+    foreach ($jugadores as $index => $jugador) {
+        $partida->jugadores()->updateExistingPivot($jugador->id, [
+            'rol_partida' => $roles[$index],
+            'vivo'        => true,
+        ]);
+    }
+
+    $partida->estado = 'en_curso';
+    $partida->fecha_inicio = now();
+    $partida->save();
+
+    $partida->load('jugadores');
+
+    event(new PartidaIniciada($partida->id));
+
+    broadcast(new AsignarRoles($partida))->toOthers();
+
 }
+    public function estado($id)
+{
+    $partida = Partida::with('jugadores')->findOrFail($id);
+
+    return response()->json([
+        'id'            => $partida->id,
+        'nombre_partida'=> $partida->nombre_partida,
+        'estado'        => $partida->estado,
+        'jugadores'     => $partida->jugadores->map(function ($j) {
+            return [
+                'id'   => $j->id,
+                'nick' => $j->nick,
+                'rol'  => $j->pivot->rol_partida,
+                'vivo' => (int) $j->pivot->vivo,
+            ];
+        }),
+    ]);
+}}

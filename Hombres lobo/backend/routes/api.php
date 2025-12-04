@@ -6,7 +6,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PartidaController;
-use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Broadcast; 
+use App\Models\JugadorPartida;
+use App\Models\VotoPartida;
+use Carbon\Carbon;
 use App\Http\Controllers\ChatController;
 
 Route::get('/user', function (Request $request) {
@@ -24,12 +27,12 @@ Route::post('/usuarios/registrar', [AuthController::class, 'registrar']);
 Route::post('/validar-username', [UsuarioController::class,'validarUserName']);
 Route::post('/validar-email', [UsuarioController::class,'validarEmail']);
 
-// Rutas públicas (sin token)
+// Rutas públicas
 Route::post('/login',    [AuthController::class, 'login']);
 Route::get('usuarios/avatares', [UsuarioController::class, 'listaAvatares']);
 
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
-// Rutas protegidas (requieren token Bearer)
+// Rutas protegidas
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me',     [AuthController::class, 'me']);
     Route::post('/logout',[AuthController::class, 'logout']);
@@ -45,10 +48,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/partidas/{id}/salir', [PartidaController::class, 'salir']);
     Route::post('/chat/send-private', [ChatController::class, 'sendPrivate']);
     Route::post('/partidas/{id}/iniciar', [PartidaController::class, 'iniciar']);
-
+    Route::get('/partidas/{id}/estado', [PartidaController::class, 'estado']);
     Route::post('/usuarios/actualizar-imagen', [UsuarioController::class, 'actualizarImagenPerfil']);
     Route::post('usuarios/elegir-avatar', [UsuarioController::class, 'elegirAvatar']);
     Route::put('/usuario/update', [UsuarioController::class, 'update']);
 });
-Route::middleware(['auth:sanctum', 'admin'])->get('/users',
-[UsuarioController::class, 'index']);

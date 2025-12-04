@@ -18,7 +18,9 @@
 }
 
 body {
-    background-image: url(../img/DIA.png);
+    background-image: url(../img/NOCHE.png);
+    background-size: cover;
+    background-position: center;
 }
 
 .titulo-juego {
@@ -37,29 +39,39 @@ body {
 }
 
 .juego-jugadores-chat {
-    flex: 3; 
+    flex: 3;
     display: grid;
-    grid-template-columns: repeat(5, 1fr); 
-    grid-template-rows: repeat(6, 1fr);
     gap: 10px;
     height: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 160px));
+    grid-auto-rows: minmax(auto);
+    justify-content: center;
+    align-content: flex-start;
 }
 
 .jugador {
-    background: var(--color-container-bg);
-    border: 1px solid var(--color-border);
+    background-color: transparent;
     border-radius: 12px;
-    color: var(--color-text-main);
     text-align: center;
     font-family: 'Crimson Text', serif;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
-    font-size: 14px;
-    transition: 0.3s ease;
+    padding-bottom: 6px;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    background-image: url(../img/CARTA-BACK.jpg);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: #ffffff;
+    font-size: clamp(0.7rem, 1.2vw, 1.4rem);
+    font-weight: 700;
+    text-shadow:
+        0 0 4px #000,
+        0 0 8px #000;
     cursor: pointer;
-    background-image: url(../img/CARTA-BACK.png);;
-    background-size: cover;
+    transition: transform 0.3s ease, border-color 0.3s ease;
 }
 
 .jugador:hover {
