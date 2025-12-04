@@ -19,6 +19,7 @@
 
 body {
     background-image: url(../img/NOCHE.png);
+    transition: background-image 2s ease-in-out;
     background-size: cover;
     background-position: center;
 }
@@ -199,7 +200,7 @@ body {
 }
 
 .contador-fase {
-    margin-left: 77%;
+    margin-left: 80%;
     font-family: 'Cinzel', serif;
     color: #E0E0E0;
     font-size: 22px;
