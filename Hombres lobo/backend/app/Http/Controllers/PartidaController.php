@@ -10,7 +10,8 @@ use App\Events\JugadorUnido;
 use App\Events\ActualizarListaPartidas;
 use App\Events\JugadorSalio;
 use App\Events\PartidaIniciada;
-use App\Events\AsignarRoles;  
+use App\Events\AsignarRoles;
+use App\Events\AlcaldeElegido;
 
 class PartidaController extends Controller
 {
@@ -43,6 +44,7 @@ class PartidaController extends Controller
             'es_bot'      => false,
             'vivo'        => true,
             'rol_partida' => 'sin_asignar',
+            'es_alcalde'  => false,
         ]);
 
         $partida->load('jugadores');
@@ -70,6 +72,7 @@ class PartidaController extends Controller
                 'es_bot'      => false,
                 'vivo'        => true,
                 'rol_partida' => 'sin_asignar',
+                'es_alcalde'  => false,
             ]);
 
             $partida->increment('numero_jugadores');
@@ -118,7 +121,7 @@ public function iniciar(Request $request, $id)
     $partida = Partida::with('jugadores')->findOrFail($id);
 
     if ($partida->id_creador_partida !== Auth::id()) {
-        return response()->json(['error' => 'No eres el líder'], 403);
+        return response()->json(['error' => 'No eres el lider'], 403);
     }
 
     $jugadores = $partida->jugadores;
@@ -147,6 +150,7 @@ public function iniciar(Request $request, $id)
         $partida->jugadores()->updateExistingPivot($jugador->id, [
             'rol_partida' => $roles[$index],
             'vivo'        => true,
+            'es_alcalde'  => false,
         ]);
     }
 
@@ -157,25 +161,66 @@ public function iniciar(Request $request, $id)
     $partida->load('jugadores');
 
     event(new PartidaIniciada($partida->id));
-
     broadcast(new AsignarRoles($partida))->toOthers();
 
-}
-    public function estado($id)
-{
-    $partida = Partida::with('jugadores')->findOrFail($id);
+    $this->asignarAlcaldeAleatorio($partida);
 
     return response()->json([
-        'id'            => $partida->id,
-        'nombre_partida'=> $partida->nombre_partida,
-        'estado'        => $partida->estado,
-        'jugadores'     => $partida->jugadores->map(function ($j) {
+        'ok'        => true,
+        'mensaje'   => 'Partida iniciada, roles y alcalde asignados',
+    ]);
+}
+
+   public function estado($id)
+{
+    $partida = Partida::with('jugadores')->findOrFail($id);
+    $hayAlcaldeVivo = $partida->jugadores->contains(function ($j) {
+        return (int) $j->pivot->es_alcalde === 1
+            && (int) $j->pivot->vivo === 1;
+    });
+
+    if (! $hayAlcaldeVivo) {
+        $this->asignarAlcaldeAleatorio($partida);
+        $partida->load('jugadores');
+    }
+
+    return response()->json([
+        'id'             => $partida->id,
+        'nombre_partida' => $partida->nombre_partida,
+        'estado'         => $partida->estado,
+        'jugadores'      => $partida->jugadores->map(function ($j) {
             return [
-                'id'   => $j->id,
-                'nick' => $j->nick,
-                'rol'  => $j->pivot->rol_partida,
-                'vivo' => (int) $j->pivot->vivo,
+                'id'         => $j->id,
+                'nick'       => $j->nick,
+                'rol'        => $j->pivot->rol_partida,
+                'vivo'       => (int) $j->pivot->vivo,
+                'es_alcalde' => (int) $j->pivot->es_alcalde,
             ];
         }),
     ]);
+}
+
+private function asignarAlcaldeAleatorio(Partida $partida): ?int
+{
+    $partida->load('jugadores');
+
+    $vivos = $partida->jugadores->filter(function ($j) {
+        return (int) $j->pivot->vivo === 1;
+    });
+
+    if ($vivos->isEmpty()) {
+        return null;
+    }
+
+    $alcalde = $vivos->random();
+
+    foreach ($partida->jugadores as $jugador) {
+        $partida->jugadores()->updateExistingPivot($jugador->id, [
+            'es_alcalde' => $jugador->id === $alcalde->id,
+        ]);
+    }
+
+    broadcast(new AlcaldeElegido($partida->id, $alcalde->id))->toOthers();
+
+    return $alcalde->id;
 }}
