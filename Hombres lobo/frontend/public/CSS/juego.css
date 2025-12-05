@@ -80,6 +80,18 @@ body {
     border-color: var(--color-text-muted);
 }
 
+.jugador.alcalde {
+    border: 3px solid #2ecc71;
+}
+
+.jugador.alcalde span {
+    color: #2ecc71;
+}
+
+.jugador.muerto span {
+    color: #7f8c8d;
+}
+
 .container-chat {
     flex: 1; 
     display: flex;

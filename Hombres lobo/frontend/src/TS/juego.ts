@@ -3,20 +3,37 @@ import api from "../api";
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import { getGameIdFromUrl } from "./lobby";
+import { calcularAparienciaJugador, type ContextoJugador } from './roles';
+
 
 (window as any).Pusher = Pusher;
 
 interface Usuario {
     id: number;
     nick: string;
-    rol: String;
-    vivo: Number;
+    rol: string;
+    vivo: number;
+    es_alcalde: number;
 }
 
 interface Juego {
     id: number;
     nombre_partida: string;
     jugadores: Usuario[]; 
+}
+
+function obtenerContextoJugador(): ContextoJugador {
+    const userJson = sessionStorage.getItem('user');
+    let miId: number | null = null;
+
+    if (userJson) {
+        const user = JSON.parse(userJson) as { id: number; nick: string };
+        miId = user.id;
+    }
+
+    const miRol = sessionStorage.getItem('mi_rol');
+
+    return { miId, miRol };
 }
 
 //referencias al DOM
@@ -86,6 +103,12 @@ function conectarWebSockets(gameId: string, token: string) {
         document.getElementById('mensajes')?.appendChild(nuevoMensaje)
         listaMensajes.scrollTop = listaMensajes.scrollHeight
     })
+
+    .listen('.AlcaldeElegido', (e: any) => {
+            console.log('Nuevo alcalde elegido:', e.jugador_id);
+            cargarJuego();
+        });
+
     .listen('.tiempo.actualizado', (e: any) => {
         const contador = document.getElementById("contador");
         if (contador) {
@@ -168,10 +191,13 @@ function renderizarJugadores(jugadores: Usuario[]) {
     if (!tableroJugadores) return;
     tableroJugadores.innerHTML = '';
 
+    const contexto = obtenerContextoJugador();
+
     jugadores.forEach(jugador => {
-        crearCartaJugador(jugador);
+        crearCartaJugador(jugador, contexto);
     });
 }
+
 
 function agregarJugadorAlTablero(jugador: Usuario) {
     if (!tableroJugadores) return;
@@ -180,15 +206,16 @@ function agregarJugadorAlTablero(jugador: Usuario) {
     
     const cartas = Array.from(tableroJugadores.children);
     const primerVacio = cartas.find(div => div.textContent?.includes('Esperando jugador...'));
+    const contexto = obtenerContextoJugador();
 
     if (primerVacio) {
         primerVacio.innerHTML = `<span>${jugador.nick}</span>`;
     } else {
-        crearCartaJugador(jugador);
+        crearCartaJugador(jugador, contexto);
     }
 }
 
-function crearCartaJugador(jugador: Usuario) {
+function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador) {
     if (!tableroJugadores) return;
 
     const div = document.createElement('div');
@@ -197,38 +224,16 @@ function crearCartaJugador(jugador: Usuario) {
     const span = document.createElement('span');
     span.textContent = jugador.nick;
 
-    const userJson = sessionStorage.getItem('user');
-    let miId: number | null = null;
+    const apariencia = calcularAparienciaJugador(jugador, contexto);
 
-    if (userJson) {
-        const user = JSON.parse(userJson) as { id: number; nick: string };
-        miId = user.id;
+    if (apariencia.backgroundImage) {
+        div.style.backgroundImage = apariencia.backgroundImage;
     }
 
-    const miRol = sessionStorage.getItem('mi_rol');
+    apariencia.clasesExtra.forEach(clase => div.classList.add(clase));
 
-    const esPropio = miId !== null && jugador.id === miId;
-    const estaVivo = jugador.vivo === 1;
-
-    let bg = '';
-
-    if (esPropio) {
-        const rol = miRol ?? jugador.rol;
-        if (rol === 'lobo') {
-            bg = "url('../img/CARTA-LOBO.png')";
-        } else if (rol === 'aldeano') {
-            bg = "url('../img/CARTA-ALDEANO.png')";
-        }
-    } else if (!estaVivo) {
-        if (jugador.rol === 'lobo') {
-            bg = "url('../img/CARTA-LOBO.png')";
-        } else if (jugador.rol === 'aldeano') {
-            bg = "url('../img/CARTA-ALDEANO.png')";
-        }
-    }
-
-    if (bg) {
-        div.style.backgroundImage = bg;
+    if (apariencia.colorNombre) {
+        span.style.color = apariencia.colorNombre;
     }
 
     div.appendChild(span);
