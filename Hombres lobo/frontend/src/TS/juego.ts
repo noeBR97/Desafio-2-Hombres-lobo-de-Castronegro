@@ -268,5 +268,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!partidaID || !token) return;
     conectarWebSockets(partidaID, token);
     cargarJuego();
-    iniciarContador();
 });
