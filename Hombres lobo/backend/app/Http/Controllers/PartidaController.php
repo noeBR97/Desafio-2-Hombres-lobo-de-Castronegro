@@ -140,6 +140,10 @@ public function iniciar(Request $request, $id)
         $roles[] = 'lobo';
     }
 
+    if ($total >= 2) {
+        $roles[] = 'nina';
+    }
+
     while (count($roles) < $total) {
         $roles[] = 'aldeano';
     }
@@ -166,10 +170,11 @@ public function iniciar(Request $request, $id)
     $this->asignarAlcaldeAleatorio($partida);
 
     return response()->json([
-        'ok'        => true,
-        'mensaje'   => 'Partida iniciada, roles y alcalde asignados',
+        'ok'      => true,
+        'mensaje' => 'Partida iniciada, roles y alcalde asignados',
     ]);
 }
+
 
    public function estado($id)
 {

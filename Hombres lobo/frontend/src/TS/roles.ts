@@ -8,15 +8,17 @@ export type AparienciaJugador = {
     colorNombre?: string;
 };
 
+export type RolJugador = 'lobo' | 'aldeano' | 'nina' | string;
+
 export type ContextoJugador = {
     miId: number | null;
-    miRol: string | null;
+    miRol: RolJugador | null;
 };
 
 type JugadorDatos = {
     id: number;
     nick: string;
-    rol: string;
+    rol: RolJugador;
     vivo: number;
     es_alcalde: number;
 };
@@ -38,10 +40,13 @@ export function calcularAparienciaJugador(
 
     if (esPropio) {
         const rol = miRol ?? jugador.rol;
+
         if (rol === 'lobo') {
             backgroundImage = "url('../img/CARTA-LOBO.png')";
         } else if (rol === 'aldeano') {
             backgroundImage = "url('../img/CARTA-ALDEANO.png')";
+        } else if (rol === 'nina') {
+            backgroundImage = "url('../img/CARTA-NINA.png')";
         }
 
     } else if (!estaVivo) {
@@ -49,12 +54,13 @@ export function calcularAparienciaJugador(
             backgroundImage = "url('../img/CARTA-LOBO.png')";
         } else if (jugador.rol === 'aldeano') {
             backgroundImage = "url('../img/CARTA-ALDEANO.png')";
+        } else if (jugador.rol === 'nina') {
+            backgroundImage = "url('../img/CARTA-NINA.png')";
         }
 
     } else if (soyLobo && jugador.rol === 'lobo') {
         backgroundImage = "url('../img/CARTA-LOBO.png')";
     }
-
 
     if (!estaVivo) {
         clasesExtra.push('muerto');
