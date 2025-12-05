@@ -103,18 +103,16 @@ function conectarWebSockets(gameId: string, token: string) {
         document.getElementById('mensajes')?.appendChild(nuevoMensaje)
         listaMensajes.scrollTop = listaMensajes.scrollHeight
     })
-
     .listen('.AlcaldeElegido', (e: any) => {
             console.log('Nuevo alcalde elegido:', e.jugador_id);
             cargarJuego();
-        });
-
+        })
     .listen('.tiempo.actualizado', (e: any) => {
         const contador = document.getElementById("contador");
         if (contador) {
             contador.textContent = e.tiempoRestante;
         }
-    })
+    });
     echo.private(`lobby.${gameId}`)
         .listen('.JugadorUnido', (e: any) => {
             console.log("Jugador nuevo en la partida:", e.user);
