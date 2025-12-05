@@ -86,6 +86,12 @@ function conectarWebSockets(gameId: string, token: string) {
         document.getElementById('mensajes')?.appendChild(nuevoMensaje)
         listaMensajes.scrollTop = listaMensajes.scrollHeight
     })
+    .listen('.tiempo.actualizado', (e: any) => {
+        const contador = document.getElementById("contador");
+        if (contador) {
+            contador.textContent = e.tiempoRestante;
+        }
+    })
     echo.private(`lobby.${gameId}`)
         .listen('.JugadorUnido', (e: any) => {
             console.log("Jugador nuevo en la partida:", e.user);
