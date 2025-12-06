@@ -278,4 +278,26 @@ public function votar(Request $request)
 
         return response()->json(['message' => 'Voto registrado']);
     }
+
+public function siguienteFase(Request $request, $id)
+    {
+        $partida = Partida::findOrFail($id);
+        
+        if ($partida->fase_actual === 'noche') {
+            $partida->fase_actual = 'dia';
+
+        } else {
+            $partida->fase_actual = 'noche';
+            $partida->ronda_actual++; 
+        }
+        
+        $partida->save();
+
+        return response()->json([
+            'mensaje' => 'Fase actualizada',
+            'fase' => $partida->fase_actual,
+            'ronda' => $partida->ronda_actual
+        ]);
+    }
+
 }

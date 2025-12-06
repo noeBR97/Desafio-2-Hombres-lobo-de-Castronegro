@@ -309,7 +309,7 @@ function iniciarContador() {
     }, 1000);
 }
 
-function cambiarFase() {
+async function cambiarFase() {
     const body = document.body;
 
     if (fase === 'dia') {
@@ -322,8 +322,18 @@ function cambiarFase() {
         body.style.backgroundImage = "url('../img/DIA.png')";
     }
 
+    try {
+        await api.post(`/api/partidas/${partidaID}/siguiente-fase`, {}, {
+             headers: { 'Authorization': `Bearer ${token}` }
+        });
+        console.log("Fase actualizada en el servidor");
+    } catch (error) {
+        console.error("Error al cambiar fase en servidor", error);
+    }
+
     tiempoRestante = 60;
     iniciarContador();
+    cargarJuego();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
