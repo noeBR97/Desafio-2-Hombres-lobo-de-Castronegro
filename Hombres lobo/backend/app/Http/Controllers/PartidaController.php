@@ -234,6 +234,9 @@ private function asignarAlcaldeAleatorio(Partida $partida): ?int
 
 public function votar(Request $request)
     {
+
+        $partida = Partida::findOrFail($request->partida_id);
+        
         $request->validate([
             'partida_id' => 'required|exists:partidas,id',
             'voto_a'     => 'required|exists:users,id', 
@@ -265,11 +268,11 @@ public function votar(Request $request)
             [
                 'id_partida' => $partidaId,
                 'id_jugador' => $jugadorVotante->id, 
-                'ronda'      => 1, 
+                'ronda'      => $partida->ronda_actual,
             ],
             [
                 'id_objetivo' => $jugadorObjetivo->id,
-                'tipo_fase'   => 'dia'
+                'tipo_fase'   => $partida->fase_actual
             ]
         );
 
