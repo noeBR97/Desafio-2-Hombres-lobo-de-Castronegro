@@ -79,12 +79,12 @@ function conectarDashboardWebSocket() {
     const echo = new Echo({
         broadcaster: 'reverb',
         key: 'wapw1chslaoar5p0jt4i',
-        wsHost: 'localhost',
+        wsHost: window.location.hostname, 
         wsPort: 8085,
         wssPort: 8085,
         forceTLS: false,
         enabledTransports: ['ws', 'wss'],
-        authEndpoint: '/api/broadcasting/auth',
+        authEndpoint: `http://${window.location.hostname}:8000/api/broadcasting/auth`,
         auth: {
             headers: {
                 Authorization: `Bearer ${token}`,
