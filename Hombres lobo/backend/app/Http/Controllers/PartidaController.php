@@ -12,6 +12,8 @@ use App\Events\JugadorSalio;
 use App\Events\PartidaIniciada;
 use App\Events\AsignarRoles;
 use App\Events\AlcaldeElegido;
+use App\Models\VotoPartida;
+use Illuminate\Support\Facades\DB; 
 
 class PartidaController extends Controller
 {
@@ -228,4 +230,52 @@ private function asignarAlcaldeAleatorio(Partida $partida): ?int
     broadcast(new AlcaldeElegido($partida->id, $alcalde->id))->toOthers();
 
     return $alcalde->id;
-}}
+}
+
+public function votar(Request $request)
+    {
+
+        $partida = Partida::findOrFail($request->partida_id);
+        
+        $request->validate([
+            'partida_id' => 'required|exists:partidas,id',
+            'voto_a'     => 'required|exists:users,id', 
+        ]);
+
+        $userId = Auth::id();
+        $partidaId = $request->partida_id;
+        $targetUserId = $request->voto_a;
+
+        $jugadorVotante = DB::table('jugadores_partida')
+                            ->where('id_partida', $partidaId)
+                            ->where('id_usuario', $userId)
+                            ->first();
+
+        if (!$jugadorVotante || !$jugadorVotante->vivo) {
+            return response()->json(['error' => 'No puedes votar (estás muerto o no juegas)'], 403);
+        }
+
+        $jugadorObjetivo = DB::table('jugadores_partida')
+                            ->where('id_partida', $partidaId)
+                            ->where('id_usuario', $targetUserId)
+                            ->first();
+                            
+        if (!$jugadorObjetivo || !$jugadorObjetivo->vivo) {
+            return response()->json(['error' => 'El objetivo no es válido'], 400);
+        }
+
+        VotoPartida::updateOrCreate(
+            [
+                'id_partida' => $partidaId,
+                'id_jugador' => $jugadorVotante->id, 
+                'ronda'      => $partida->ronda_actual,
+            ],
+            [
+                'id_objetivo' => $jugadorObjetivo->id,
+                'tipo_fase'   => $partida->fase_actual
+            ]
+        );
+
+        return response()->json(['message' => 'Voto registrado']);
+    }
+}

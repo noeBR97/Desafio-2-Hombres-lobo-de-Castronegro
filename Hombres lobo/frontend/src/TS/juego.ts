@@ -51,6 +51,7 @@ const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 let fase: 'dia' | 'noche' = 'noche';
 let tiempoRestante = 60; 
 let intervalo: any;
+let votoActual: number | null = null; 
 
 if (!partidaID || !token) {
     console.error('ID de partida o token no disponibles');
@@ -219,6 +220,16 @@ function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador) {
     const div = document.createElement('div');
     div.className = 'jugador';
 
+    div.dataset.id = jugador.id.toString();
+
+    div.addEventListener('click', () => {
+        gestionarVoto(jugador, contexto);
+    });
+
+    if (votoActual === jugador.id) {
+        div.classList.add('votado');
+    }
+
     const span = document.createElement('span');
     span.textContent = jugador.nick;
 
@@ -238,14 +249,60 @@ function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador) {
     tableroJugadores.appendChild(div);
 }
 
+async function gestionarVoto(objetivo: Usuario, contexto: ContextoJugador) {
+    if (fase !== 'dia') {
+        alert("Solo se puede votar durante el día");
+        return;
+    }
+
+    if (objetivo.id === contexto.miId) {
+        alert("No puedes votarte a ti mismo");
+        return;
+    }
+
+    if (!confirm(`¿Quieres votar a ${objetivo.nick}?`)) return;
+
+    try {
+        await api.post('/api/partida/votar', {
+            partida_id: partidaID,
+            voto_a: objetivo.id 
+        }, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        console.log(`Voto registrado a ${objetivo.nick}`);
+        votoActual = objetivo.id;
+        actualizarEstilosVotacion(); 
+
+    } catch (error: any) {
+        console.error("Error al votar:", error);
+        alert("No se pudo registrar el voto.");
+    }
+}
+
+function actualizarEstilosVotacion() {
+    const cartas = document.querySelectorAll('.jugador');
+    cartas.forEach((carta) => {
+        const el = carta as HTMLElement;
+        el.classList.remove('votado'); 
+        
+        if (el.dataset.id === votoActual?.toString()) {
+            el.classList.add('votado');
+        }
+    });
+}
+
 function iniciarContador() {
     const contador = document.getElementById('contador') as HTMLHeadingElement;
+    if (!contador) return; 
+
+    contador.textContent = `Fase: ${fase.toUpperCase()} | ${tiempoRestante}s`;
 
     intervalo = setInterval(() => {
-        contador.textContent = `Cambio de fase en: ${tiempoRestante}s`;
         tiempoRestante--;
+        contador.textContent = `Fase: ${fase.toUpperCase()} | ${tiempoRestante}s`;
 
-        if (tiempoRestante < 0) {
+        if (tiempoRestante <= 0) {
             clearInterval(intervalo);
             cambiarFase();
         }
@@ -258,6 +315,8 @@ function cambiarFase() {
     if (fase === 'dia') {
         fase = 'noche';
         body.style.backgroundImage = "url('../img/NOCHE.png')";
+        votoActual = null;
+        actualizarEstilosVotacion();
     } else {
         fase = 'dia';
         body.style.backgroundImage = "url('../img/DIA.png')";
