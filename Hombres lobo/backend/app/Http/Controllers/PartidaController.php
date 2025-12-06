@@ -42,7 +42,8 @@ class PartidaController extends Controller
             'nombre_partida'       => $validatedData['nombre_partida'],
             'id_creador_partida'   => $user->id,
             'estado'               => 'en_espera',
-            'numero_jugadores'     => $validatedData['numero_jugadores']
+            'numero_jugadores'     => 0,
+            'max_jugadores'     => $validatedData['numero_jugadores']
         ]);
 
         $partida->jugadores()->attach($user->id, [
@@ -70,10 +71,6 @@ class PartidaController extends Controller
     {
         $user = Auth::user();
         $partida = Partida::findOrFail($id);
-
-        if($partida->numero_jugadores >= $partida->max_jugadores) {
-            $this->rellenarConBots($partida->id);
-        }
 
         if (!$partida->jugadores()->where('id_usuario', $user->id)->exists()) {
 
@@ -133,8 +130,17 @@ public function iniciar(Request $request, $id)
         return response()->json(['error' => 'No eres el lider'], 403);
     }
 
+    $this->rellenarConBots($partida->id);
+    $partida->load('jugadores');
+
     $jugadores = $partida->jugadores;
+
+    $humanos = $partida->jugadores->where('pivot.es_bot', false);
+    $totalHumanos = $humanos->count();
+
+    //humanos + bots
     $total = $jugadores->count();
+
     if ($total >= 12) {
         $numLobos = 3;
     } elseif ($total >= 8) {
@@ -149,7 +155,7 @@ public function iniciar(Request $request, $id)
         $roles[] = 'lobo';
     }
 
-    if ($total >= 2) {
+    if ($totalHumanos >= 2) {
         $roles[] = 'nina';
     }
 
@@ -159,9 +165,18 @@ public function iniciar(Request $request, $id)
 
     shuffle($roles);
 
-    foreach ($jugadores as $index => $jugador) {
+    foreach ($jugadores as $jugador) {
+        $rolAsignado = array_pop($roles);
+
+        if ($rolAsignado === 'nina' && $jugador->pivot->es_bot) {
+            $rolesValidos = array_filter($roles, fn($r) => $r !== 'nina');
+            $rolAsignado = array_shift($rolesValidos);
+
+            $roles = array_merge($rolesValidos, $roles);
+        }
+
         $partida->jugadores()->updateExistingPivot($jugador->id, [
-            'rol_partida' => $roles[$index],
+            'rol_partida' => $rolAsignado,
             'vivo'        => true,
             'es_alcalde'  => false,
         ]);
@@ -219,7 +234,7 @@ private function asignarAlcaldeAleatorio(Partida $partida): ?int
     $partida->load('jugadores');
 
     $vivos = $partida->jugadores->filter(function ($j) {
-        return (int) $j->pivot->vivo === 1;
+        return (int) $j->pivot->vivo === 1 && !$j->pivot->es_bot;
     });
 
     if ($vivos->isEmpty()) {
@@ -286,65 +301,65 @@ public function votar(Request $request)
         return response()->json(['message' => 'Voto registrado']);
     }
 
-    public function rellenarConBots($idPartida) {
-        $partida = Partida::with('jugadores')->findOrFail($idPartida);
-        $totalActual = $partida->jugadores->count();
-        $maxJugadores = $partida->numero_jugadores;
+public function rellenarConBots($idPartida) {
+    $partida = Partida::with('jugadores')->findOrFail($idPartida);
+    $totalActual = $partida->jugadores->count();
+    $maxJugadores = $partida->numero_jugadores;
 
-        if($totalActual >= $maxJugadores) {
-            return response()->json(['mensaje' => 'La partida está completa']);
-        }
-
-        $jugadoresFaltan = $maxJugadores - $totalActual;
-
-        $roles = ['aldeano', 'lobo'];
-
-        $bots = [];
-
-        for ($i=0; $i < $jugadoresFaltan; $i++) {
-            $rol = $roles[array_rand($roles)];
-
-            $bots[] = [
-                'id' => 'Bot_00' . $i,
-                'id_partida' => $partida->id,
-                'id_usuario' => null,
-                'es_bot' => true,
-                'vivo' => true,
-                'es_alcalde' => false,
-                'rol_partida' => $rol,
-                'created_at' => now(),
-                'updated_at' => now()
-            ];
-        }
-
-        //miramos si hay algun jugador como aldeano o como lobo
-        $jugadorAldeano = JugadorPartida::where('id_partida', $idPartida)
-        ->where('es_bot', false)
-        ->where('rol_partida', 'aldeano')
-        ->exists();
-
-        $jugadorLobo = JugadorPartida::where('id_partida', $idPartida)
-        ->where('es_bot', false)
-        ->where('rol_partida', 'lobo')
-        ->exists();
-
-        if(!$jugadorAldeano) {
-            $bots[0]['rol_partida'] = 'aldeano';
-        }
-
-        if(!$jugadorLobo) {
-            $bots[1]['rol_partida'] = 'lobo';
-        }
-
-        JugadorPartida::insert($bots);
-
-        $partida->load('jugadores');
-
-        broadcast(new PartidaActualizada($partida->id))->toOthers();
-
-        return response()->json([
-            'mensaje' => 'Se han cargado ' . $jugadoresFaltan . ' bots correctamente',
-            'total_jugadores' => $partida->jugadores->count()
-        ], 201);
+    if($totalActual >= $maxJugadores) {
+        return response()->json(['mensaje' => 'La partida está completa']);
     }
+
+    $jugadoresFaltan = $maxJugadores - $totalActual;
+
+    $roles = ['aldeano', 'lobo'];
+
+    $bots = [];
+
+    for ($i=0; $i < $jugadoresFaltan; $i++) {
+        $rol = $roles[array_rand($roles)];
+
+        $bots[] = [
+            'id_partida' => $partida->id,
+            'id_usuario' => null,
+            'es_bot' => true,
+            'vivo' => true,
+            'es_alcalde' => false,
+            'rol_partida' => $rol,
+            'nick_bot' => 'Bot_'.str_pad($i + 1, 2, '0', STR_PAD_LEFT),
+            'created_at' => now(),
+            'updated_at' => now()
+        ];
+    }
+
+    //miramos si hay algun jugador como aldeano o como lobo
+    $jugadorAldeano = JugadorPartida::where('id_partida', $idPartida)
+    ->where('es_bot', false)
+    ->where('rol_partida', 'aldeano')
+    ->exists();
+
+    $jugadorLobo = JugadorPartida::where('id_partida', $idPartida)
+    ->where('es_bot', false)
+    ->where('rol_partida', 'lobo')
+    ->exists();
+
+    if(!$jugadorAldeano && isset($bots[0])) {
+        $bots[0]['rol_partida'] = 'aldeano';
+    }
+
+    if(!$jugadorLobo && isset($bots[1])) {
+        $bots[1]['rol_partida'] = 'lobo';
+    }
+
+    JugadorPartida::insert($bots);
+
+    $partida->load('jugadores');
+
+    broadcast(new PartidaActualizada($partida->id))->toOthers();
+
+    return response()->json([
+        'mensaje' => 'Se han cargado ' . $jugadoresFaltan . ' bots correctamente',
+        'total_jugadores' => $partida->jugadores->count()
+    ], 201);
+}
 }
