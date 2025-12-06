@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('partidas', function (Blueprint $table) {
-            $table->integer('max_jugadores')->default(15);
+        Schema::table('jugadores_partida', function (Blueprint $table) {
+            $table->string('nick_bot')->nullable()->after('id_usuario');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('partidas', function (Blueprint $table) {
-            $table->dropColumn('max_jugadores');
+        Schema::table('jugadores_partida', function (Blueprint $table) {
+            $table->dropColumn('nick_bot');
         });
     }
 };
