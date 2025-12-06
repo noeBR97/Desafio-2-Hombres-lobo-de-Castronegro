@@ -49,9 +49,10 @@ const token = sessionStorage.getItem('auth_token');
 const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 
 let fase: 'dia' | 'noche' = 'noche';
-let tiempoRestante = 60; 
 let intervalo: any;
-let votoActual: number | null = null; 
+let votoActual: number | null = null
+let finFaseTimestamp: number = 0; 
+const DURACION_FASE = 60; 
 
 if (!partidaID || !token) {
     console.error('ID de partida o token no disponibles');
@@ -104,16 +105,18 @@ function conectarWebSockets(gameId: string, token: string) {
         document.getElementById('mensajes')?.appendChild(nuevoMensaje)
         listaMensajes.scrollTop = listaMensajes.scrollHeight
     })
+    .listen('.CambioDeFase', (e: any) => {
+            console.log("Cambio de fase recibido del servidor:", e.partida.fase_actual);
+            
+            fase = e.partida.fase_actual; 
+            
+            iniciarTemporizadorVisual(); 
+            actualizarFondoYVotos();
+        })
     .listen('.AlcaldeElegido', (e: any) => {
             console.log('Nuevo alcalde elegido:', e.jugador_id);
             cargarJuego();
         })
-    .listen('.tiempo.actualizado', (e: any) => {
-        const contador = document.getElementById("contador");
-        if (contador) {
-            contador.textContent = e.tiempoRestante;
-        }
-    });
     echo.private(`lobby.${gameId}`)
         .listen('.JugadorUnido', (e: any) => {
             console.log("Jugador nuevo en la partida:", e.user);
@@ -292,53 +295,57 @@ function actualizarEstilosVotacion() {
     });
 }
 
-function iniciarContador() {
-    const contador = document.getElementById('contador') as HTMLHeadingElement;
-    if (!contador) return; 
+function iniciarTemporizadorVisual() {
+    const ahora = Date.now();
+    finFaseTimestamp = ahora + (DURACION_FASE * 1000);
 
-    contador.textContent = `Fase: ${fase.toUpperCase()} | ${tiempoRestante}s`;
+    if (intervalo) clearInterval(intervalo);
+
+    const contador = document.getElementById('contador');
 
     intervalo = setInterval(() => {
-        tiempoRestante--;
-        contador.textContent = `Fase: ${fase.toUpperCase()} | ${tiempoRestante}s`;
+        const ahoraMismo = Date.now();
+        const segundosRestantes = Math.ceil((finFaseTimestamp - ahoraMismo) / 1000);
 
-        if (tiempoRestante <= 0) {
+        if (contador) {
+            contador.textContent = `Fase: ${fase.toUpperCase()} | ${segundosRestantes}s`;
+        }
+
+        if (segundosRestantes <= 0) {
             clearInterval(intervalo);
-            cambiarFase();
+            
+            intentarCambiarFase();
         }
     }, 1000);
 }
 
-async function cambiarFase() {
-    const body = document.body;
+async function intentarCambiarFase() {
+    try {
+        await api.post(`/api/partidas/${partidaID}/siguiente-fase`, {
+            fase_actual_cliente: fase 
+        }, {
+             headers: { 'Authorization': `Bearer ${token}` }
+        });
+    } catch (error) {
+        console.log("Petición de cambio de fase enviada (o ignorada si ya cambió).");
+    }
+}
 
+function actualizarFondoYVotos() {
+    const body = document.body;
     if (fase === 'dia') {
-        fase = 'noche';
+        body.style.backgroundImage = "url('../img/DIA.png')";
+    } else {
         body.style.backgroundImage = "url('../img/NOCHE.png')";
         votoActual = null;
         actualizarEstilosVotacion();
-    } else {
-        fase = 'dia';
-        body.style.backgroundImage = "url('../img/DIA.png')";
     }
-
-    try {
-        await api.post(`/api/partidas/${partidaID}/siguiente-fase`, {}, {
-             headers: { 'Authorization': `Bearer ${token}` }
-        });
-        console.log("Fase actualizada en el servidor");
-    } catch (error) {
-        console.error("Error al cambiar fase en servidor", error);
-    }
-
-    tiempoRestante = 60;
-    iniciarContador();
-    cargarJuego();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!partidaID || !token) return;
     conectarWebSockets(partidaID, token);
     cargarJuego();
-    iniciarContador();
+    iniciarTemporizadorVisual();
+    actualizarFondoYVotos();
 });

@@ -14,6 +14,7 @@ use App\Events\AsignarRoles;
 use App\Events\AlcaldeElegido;
 use App\Models\VotoPartida;
 use Illuminate\Support\Facades\DB; 
+use App\Events\CambioDeFase;
 
 class PartidaController extends Controller
 {
@@ -282,19 +283,25 @@ public function votar(Request $request)
 public function siguienteFase(Request $request, $id)
     {
         $partida = Partida::findOrFail($id);
+        $faseCliente = $request->input('fase_actual_cliente');
         
+       if ($partida->fase_actual !== $faseCliente) {
+            return response()->json(['mensaje' => 'La fase ya había cambiado, ignorando petición.'], 200);
+        }
+
         if ($partida->fase_actual === 'noche') {
             $partida->fase_actual = 'dia';
-
         } else {
             $partida->fase_actual = 'noche';
-            $partida->ronda_actual++; 
+            $partida->ronda_actual++;
         }
         
         $partida->save();
 
+        broadcast(new CambioDeFase($partida))->toOthers();
+
         return response()->json([
-            'mensaje' => 'Fase actualizada',
+            'mensaje' => 'Fase actualizada correctamente',
             'fase' => $partida->fase_actual,
             'ronda' => $partida->ronda_actual
         ]);
