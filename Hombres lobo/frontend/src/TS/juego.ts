@@ -52,7 +52,8 @@ let fase: 'dia' | 'noche' = 'noche';
 let intervalo: any;
 let votoActual: number | null = null
 let finFaseTimestamp: number = 0; 
-const DURACION_FASE = 60; 
+const DURACION_FASE = 60;
+let estoyVivo: boolean = true; 
 
 if (!partidaID || !token) {
     console.error('ID de partida o token no disponibles');
@@ -112,6 +113,7 @@ function conectarWebSockets(gameId: string, token: string) {
             
             iniciarTemporizadorVisual(); 
             actualizarFondoYVotos();
+            cargarJuego();
         })
     .listen('.AlcaldeElegido', (e: any) => {
             console.log('Nuevo alcalde elegido:', e.jugador_id);
@@ -127,6 +129,10 @@ function conectarWebSockets(gameId: string, token: string) {
 let enviando = false;
 
 async function enviarMensaje() {
+    if (!estoyVivo) {
+        alert("Estás muerto, no puedes hablar.");
+        return;
+    }
     const contenido = inputMensaje.value.trim();
     if (!contenido || !partidaID || !token) return;
     if (enviando) return;
@@ -195,10 +201,20 @@ function renderizarJugadores(jugadores: Usuario[]) {
 
     const contexto = obtenerContextoJugador();
 
+    const miJugador = jugadores.find(j => j.id === contexto.miId);
+    if (miJugador) {
+        contexto.miRol = miJugador.rol;
+        sessionStorage.setItem('mi_rol', miJugador.rol);
+        estoyVivo = miJugador.vivo === 1;
+        console.log('DEBUG miRol:', contexto.miRol, 'estoyVivo:', estoyVivo);
+    }
+
     jugadores.forEach(jugador => {
         crearCartaJugador(jugador, contexto);
     });
 }
+
+
 
 
 function agregarJugadorAlTablero(jugador: Usuario) {
@@ -253,8 +269,8 @@ function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador) {
 }
 
 async function gestionarVoto(objetivo: Usuario, contexto: ContextoJugador) {
-    if (fase !== 'dia') {
-        alert("Solo se puede votar durante el día");
+    if (fase === 'noche' && contexto.miRol !== 'lobo') {
+        alert("Solo los lobos pueden votar por la noche");
         return;
     }
 
