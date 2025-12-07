@@ -30,7 +30,7 @@ class Partida extends Model
     public function jugadores(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'jugadores_partida', 'id_partida', 'id_usuario')
-                    ->withPivot('es_bot', 'vivo', 'rol_partida', 'es_alcalde');
+                    ->withPivot('es_bot', 'vivo', 'rol_partida', 'es_alcalde', 'nick_bot');
     }
 
 }

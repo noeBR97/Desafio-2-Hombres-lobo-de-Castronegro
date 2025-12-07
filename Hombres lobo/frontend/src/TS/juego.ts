@@ -14,6 +14,7 @@ interface Usuario {
     rol: string;
     vivo: number;
     es_alcalde: number;
+    es_bot: number
 }
 
 interface Juego {
@@ -113,6 +114,9 @@ function conectarWebSockets(gameId: string, token: string) {
         if (contador) {
             contador.textContent = e.tiempoRestante;
         }
+    })
+    .listen('.PartidaActualizada', (e:any) => {
+        renderizarJugadores(e.jugadores)
     });
     echo.private(`lobby.${gameId}`)
         .listen('.JugadorUnido', (e: any) => {
