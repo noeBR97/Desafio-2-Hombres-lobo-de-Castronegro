@@ -304,10 +304,10 @@ public function votar(Request $request)
 public function rellenarConBots($idPartida) {
     $partida = Partida::with('jugadores')->findOrFail($idPartida);
     $totalActual = $partida->jugadores->count();
-    $maxJugadores = $partida->numero_jugadores;
+    $maxJugadores = $partida->max_jugadores;
 
     if($totalActual >= $maxJugadores) {
-        return response()->json(['mensaje' => 'La partida está completa']);
+        return;
     }
 
     $jugadoresFaltan = $maxJugadores - $totalActual;
@@ -352,6 +352,9 @@ public function rellenarConBots($idPartida) {
     }
 
     JugadorPartida::insert($bots);
+
+    $partida->numero_jugadores += $jugadoresFaltan;
+    $partida->save();
 
     $partida->load('jugadores');
 
