@@ -196,8 +196,15 @@ function renderizarJugadores(jugadores: Usuario[]) {
 
     const contexto = obtenerContextoJugador();
 
-    jugadores.forEach(jugador => {
+    const humanos = jugadores.filter(j => j.es_bot === 0);
+    const bots = jugadores.filter(j => j.es_bot === 1);
+
+    humanos.forEach(jugador => {
         crearCartaJugador(jugador, contexto);
+    });
+
+    bots.forEach(bot => {
+        crearCartaJugador(bot, contexto, true);
     });
 }
 
@@ -218,24 +225,26 @@ function agregarJugadorAlTablero(jugador: Usuario) {
     }
 }
 
-function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador) {
+function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador, esBot: boolean = false) {
     if (!tableroJugadores) return;
 
     const div = document.createElement('div');
     div.className = 'jugador';
 
-    div.dataset.id = jugador.id.toString();
+    div.dataset.id = jugador.id?.toString() ?? `bot-${jugador.nick}`;
 
-    div.addEventListener('click', () => {
-        gestionarVoto(jugador, contexto);
-    });
+    if (!esBot) {
+        div.addEventListener('click', () => {
+            gestionarVoto(jugador, contexto);
+        });
+    }
 
     if (votoActual === jugador.id) {
         div.classList.add('votado');
     }
 
     const span = document.createElement('span');
-    span.textContent = jugador.nick;
+    span.textContent = jugador.nick + (esBot ? ' (BOT)' : '');
 
     const apariencia = calcularAparienciaJugador(jugador, contexto);
 

@@ -213,19 +213,39 @@ public function iniciar(Request $request, $id)
         $partida->load('jugadores');
     }
 
-    return response()->json([
-        'id'             => $partida->id,
-        'nombre_partida' => $partida->nombre_partida,
-        'estado'         => $partida->estado,
-        'jugadores'      => $partida->jugadores->map(function ($j) {
+    $jugadores = $partida->jugadores->map(function ($j) {
             return [
                 'id'         => $j->id,
                 'nick'       => $j->nick,
                 'rol'        => $j->pivot->rol_partida,
                 'vivo'       => (int) $j->pivot->vivo,
                 'es_alcalde' => (int) $j->pivot->es_alcalde,
+                'es_bot'     => $j->pivot->es_bot
             ];
-        }),
+    })->toArray();
+
+    $bots = \DB::table('jugadores_partida')
+        ->where('id_partida', $id)
+        ->where('es_bot', true)
+        ->whereNull('id_usuario')
+        ->get();
+
+    foreach ($bots as $bot) {
+        $jugadores[] = [
+            'id'         => null,
+            'nick'       => $bot->nick_bot,
+            'rol'        => $bot->rol_partida,
+            'vivo'       => (int) $bot->vivo,
+            'es_alcalde' => (int) $bot->es_alcalde,
+            'es_bot'     => (int) $bot->es_bot
+        ];
+    }
+
+    return response()->json([
+        'id'             => $partida->id,
+        'nombre_partida' => $partida->nombre_partida,
+        'estado'         => $partida->estado,
+        'jugadores'      => $jugadores
     ]);
 }
 
