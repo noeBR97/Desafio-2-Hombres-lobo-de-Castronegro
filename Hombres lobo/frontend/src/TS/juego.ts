@@ -147,9 +147,7 @@ echo.private(`game.${gameId}`)
         if (e.jugador_muerto) {
             narradorDecir(`El jugador ${e.jugador_muerto.nick} ha muerto.`);
         }
-    });
-
-    echo.channel(`narrador.game.${gameId}`)
+    })
     .listen('.NarradorHabla', (e: any) => {
         narradorDecir(e.mensaje);
     });
@@ -350,7 +348,6 @@ async function gestionarVoto(objetivo: Usuario, contexto: ContextoJugador) {
 
         console.log(`Voto registrado a ${objetivo.nick}`);
         votoActual = objetivo.id;
-        narradorDecir(`${user.nick} ha votado a ${objetivo.nick}`);
         actualizarEstilosVotacion();
 
     } catch (error: any) {
