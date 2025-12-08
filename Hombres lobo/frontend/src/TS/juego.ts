@@ -52,7 +52,8 @@ let fase: 'dia' | 'noche' = 'noche';
 let intervalo: any;
 let votoActual: number | null = null
 let finFaseTimestamp: number = 0; 
-const DURACION_FASE = 60; 
+const DURACION_FASE = 60;
+let estoyVivo: boolean = true; 
 
 if (!partidaID || !token) {
     console.error('ID de partida o token no disponibles');
@@ -78,41 +79,54 @@ function conectarWebSockets(gameId: string, token: string) {
         }
     });
 
-    echo.private(`game.${gameId}`)
+echo.private(`game.${gameId}`)
     .listen('.message.sent', (e: any) => {
-        if(!listaMensajes) return;
-
-        const nuevoMensaje = document.createElement('li');
-        nuevoMensaje.className = 'mensaje'
-
-        if(e.mensaje.usuario_id === user.id) {
-            nuevoMensaje.classList.add('mensaje-propio');
-        } else {
-            nuevoMensaje.classList.add('mensaje-ajeno')
+    if (!listaMensajes) return;
+    const contexto = obtenerContextoJugador();
+    const miRolNorm = (contexto.miRol || '').toLowerCase().trim();
+    const esNoche = fase === 'noche';
+    const soloLobos = e.solo_lobos === true;
+    if (esNoche && soloLobos) {
+        if (estoyVivo && miRolNorm !== 'lobo' && miRolNorm !== 'nina') {
+            return;
         }
+    }
+    const nuevoMensaje = document.createElement('li');
+    nuevoMensaje.className = 'mensaje';
 
-        const nombre = document.createElement('div')
-        nombre.classList.add('mensaje-nombre')
-        nombre.textContent = e.mensaje.usuario_nick
+    if (e.mensaje.usuario_id === user.id) {
+        nuevoMensaje.classList.add('mensaje-propio');
+    } else {
+        nuevoMensaje.classList.add('mensaje-ajeno');
+    }
 
-        const cuerpo = document.createElement('div')
-        cuerpo.classList.add('mensaje-texto')
-        cuerpo.textContent = e.mensaje.contenido
+    const nombre = document.createElement('div');
+    nombre.classList.add('mensaje-nombre');
+    nombre.textContent = e.mensaje.usuario_nick;
 
-        nuevoMensaje.appendChild(nombre)
-        nuevoMensaje.appendChild(cuerpo)
-        
-        document.getElementById('mensajes')?.appendChild(nuevoMensaje)
-        listaMensajes.scrollTop = listaMensajes.scrollHeight
-    })
+    const cuerpo = document.createElement('div');
+    cuerpo.classList.add('mensaje-texto');
+    cuerpo.textContent = e.mensaje.contenido;
+
+    nuevoMensaje.appendChild(nombre);
+    nuevoMensaje.appendChild(cuerpo);
+
+    document.getElementById('mensajes')?.appendChild(nuevoMensaje);
+    listaMensajes.scrollTop = listaMensajes.scrollHeight;
+})
     .listen('.CambioDeFase', (e: any) => {
-            console.log("Cambio de fase recibido del servidor:", e.partida.fase_actual);
-            
-            fase = e.partida.fase_actual; 
-            
-            iniciarTemporizadorVisual(); 
-            actualizarFondoYVotos();
-        })
+        console.log("Cambio de fase recibido del servidor:", e.partida.fase_actual);
+        
+        fase = e.partida.fase_actual; 
+        
+        iniciarTemporizadorVisual(); 
+        actualizarFondoYVotos();
+        cargarJuego();
+    })
+    .listen('.AlcaldeElegido', (e: any) => {
+        console.log('Nuevo alcalde elegido:', e.jugador_id);
+        cargarJuego();
+    })
     .listen('.AlcaldeElegido', (e: any) => {
             console.log('Nuevo alcalde elegido:', e.jugador_id);
             cargarJuego();
@@ -127,9 +141,25 @@ function conectarWebSockets(gameId: string, token: string) {
 let enviando = false;
 
 async function enviarMensaje() {
+    if (!estoyVivo) {
+        alert("Estás muerto, no puedes hablar.");
+        return;
+    }
     const contenido = inputMensaje.value.trim();
     if (!contenido || !partidaID || !token) return;
     if (enviando) return;
+    const contexto = obtenerContextoJugador();
+    const miRolNorm = (contexto.miRol || '').toLowerCase().trim();
+    if (fase === 'noche') {
+        if (miRolNorm === 'nina') {
+            alert("La niña puede escuchar a los lobos, pero no hablar de noche.");
+            return;
+        }
+        if (miRolNorm !== 'lobo') {
+            alert("Solo los lobos pueden hablar por la noche.");
+            return;
+        }
+    }
     enviando = true;
     if (btnEnviarMensaje) btnEnviarMensaje.disabled = true;
     try {
@@ -151,6 +181,7 @@ async function enviarMensaje() {
         if (btnEnviarMensaje) btnEnviarMensaje.disabled = false;
     }
 }
+
 
 btnEnviarMensaje?.addEventListener('click', () => {
     enviarMensaje();
@@ -195,10 +226,20 @@ function renderizarJugadores(jugadores: Usuario[]) {
 
     const contexto = obtenerContextoJugador();
 
+    const miJugador = jugadores.find(j => j.id === contexto.miId);
+    if (miJugador) {
+        contexto.miRol = miJugador.rol;
+        sessionStorage.setItem('mi_rol', miJugador.rol);
+        estoyVivo = miJugador.vivo === 1;
+        console.log('DEBUG miRol:', contexto.miRol, 'estoyVivo:', estoyVivo);
+    }
+
     jugadores.forEach(jugador => {
         crearCartaJugador(jugador, contexto);
     });
 }
+
+
 
 
 function agregarJugadorAlTablero(jugador: Usuario) {
@@ -253,8 +294,8 @@ function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador) {
 }
 
 async function gestionarVoto(objetivo: Usuario, contexto: ContextoJugador) {
-    if (fase !== 'dia') {
-        alert("Solo se puede votar durante el día");
+    if (fase === 'noche' && contexto.miRol !== 'lobo') {
+        alert("Solo los lobos pueden votar por la noche");
         return;
     }
 
