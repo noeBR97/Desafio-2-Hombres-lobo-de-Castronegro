@@ -239,7 +239,6 @@ function renderizarJugadores(jugadores: Usuario[]) {
     const humanos = jugadores.filter(j => j.es_bot === 0);
     const bots = jugadores.filter(j => j.es_bot === 1);
 
-    humanos.forEach(jugador => {
     const miJugador = jugadores.find(j => j.id === contexto.miId);
     if (miJugador) {
         contexto.miRol = miJugador.rol;
@@ -248,7 +247,7 @@ function renderizarJugadores(jugadores: Usuario[]) {
         console.log('DEBUG miRol:', contexto.miRol, 'estoyVivo:', estoyVivo);
     }
 
-    jugadores.forEach(jugador => {
+    humanos.forEach(jugador => {
         crearCartaJugador(jugador, contexto);
     });
 

@@ -17,7 +17,6 @@ use App\Events\PartidaActualizada;
 use App\Models\VotoPartida;
 use Illuminate\Support\Facades\DB; 
 use App\Events\CambioDeFase;
-use App\Models\JugadorPartida;
 
 class PartidaController extends Controller
 {
@@ -391,7 +390,7 @@ public function rellenarConBots($idPartida) {
         'total_jugadores' => $partida->jugadores->count()
     ], 201);
 }
-}
+
 public function siguienteFase(Request $request, $id)
 {
     $partida = Partida::findOrFail($id);
