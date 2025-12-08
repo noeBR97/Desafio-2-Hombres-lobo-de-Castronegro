@@ -49,9 +49,11 @@ const token = sessionStorage.getItem('auth_token');
 const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 
 let fase: 'dia' | 'noche' = 'noche';
-let tiempoRestante = 60; 
 let intervalo: any;
-let votoActual: number | null = null; 
+let votoActual: number | null = null
+let finFaseTimestamp: number = 0; 
+const DURACION_FASE = 60;
+let estoyVivo: boolean = true; 
 
 if (!partidaID || !token) {
     console.error('ID de partida o token no disponibles');
@@ -63,12 +65,12 @@ function conectarWebSockets(gameId: string, token: string) {
     const echo = new Echo({
         broadcaster: 'reverb',
         key: 'wapw1chslaoar5p0jt4i', 
-        wsHost: 'localhost',         
+        wsHost: window.location.hostname,         
         wsPort: 8085,                
         wssPort: 8085,
         forceTLS: false,
         enabledTransports: ['ws', 'wss'],
-        authEndpoint: 'http://localhost:8000/api/broadcasting/auth',
+        authEndpoint: `http://${window.location.hostname}:8000/api/broadcasting/auth`,
         auth: {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -77,43 +79,58 @@ function conectarWebSockets(gameId: string, token: string) {
         }
     });
 
-    echo.private(`game.${gameId}`)
+echo.private(`game.${gameId}`)
     .listen('.message.sent', (e: any) => {
-        if(!listaMensajes) return;
-
-        const nuevoMensaje = document.createElement('li');
-        nuevoMensaje.className = 'mensaje'
-
-        if(e.mensaje.usuario_id === user.id) {
-            nuevoMensaje.classList.add('mensaje-propio');
-        } else {
-            nuevoMensaje.classList.add('mensaje-ajeno')
+    if (!listaMensajes) return;
+    const contexto = obtenerContextoJugador();
+    const miRolNorm = (contexto.miRol || '').toLowerCase().trim();
+    const esNoche = fase === 'noche';
+    const soloLobos = e.solo_lobos === true;
+    if (esNoche && soloLobos) {
+        if (estoyVivo && miRolNorm !== 'lobo' && miRolNorm !== 'nina') {
+            return;
         }
+    }
+    const nuevoMensaje = document.createElement('li');
+    nuevoMensaje.className = 'mensaje';
 
-        const nombre = document.createElement('div')
-        nombre.classList.add('mensaje-nombre')
-        nombre.textContent = e.mensaje.usuario_nick
+    if (e.mensaje.usuario_id === user.id) {
+        nuevoMensaje.classList.add('mensaje-propio');
+    } else {
+        nuevoMensaje.classList.add('mensaje-ajeno');
+    }
 
-        const cuerpo = document.createElement('div')
-        cuerpo.classList.add('mensaje-texto')
-        cuerpo.textContent = e.mensaje.contenido
+    const nombre = document.createElement('div');
+    nombre.classList.add('mensaje-nombre');
+    nombre.textContent = e.mensaje.usuario_nick;
 
-        nuevoMensaje.appendChild(nombre)
-        nuevoMensaje.appendChild(cuerpo)
+    const cuerpo = document.createElement('div');
+    cuerpo.classList.add('mensaje-texto');
+    cuerpo.textContent = e.mensaje.contenido;
+
+    nuevoMensaje.appendChild(nombre);
+    nuevoMensaje.appendChild(cuerpo);
+
+    document.getElementById('mensajes')?.appendChild(nuevoMensaje);
+    listaMensajes.scrollTop = listaMensajes.scrollHeight;
+})
+    .listen('.CambioDeFase', (e: any) => {
+        console.log("Cambio de fase recibido del servidor:", e.partida.fase_actual);
         
-        document.getElementById('mensajes')?.appendChild(nuevoMensaje)
-        listaMensajes.scrollTop = listaMensajes.scrollHeight
+        fase = e.partida.fase_actual; 
+        
+        iniciarTemporizadorVisual(); 
+        actualizarFondoYVotos();
+        cargarJuego();
+    })
+    .listen('.AlcaldeElegido', (e: any) => {
+        console.log('Nuevo alcalde elegido:', e.jugador_id);
+        cargarJuego();
     })
     .listen('.AlcaldeElegido', (e: any) => {
             console.log('Nuevo alcalde elegido:', e.jugador_id);
             cargarJuego();
         })
-    .listen('.tiempo.actualizado', (e: any) => {
-        const contador = document.getElementById("contador");
-        if (contador) {
-            contador.textContent = e.tiempoRestante;
-        }
-    });
     echo.private(`lobby.${gameId}`)
         .listen('.JugadorUnido', (e: any) => {
             console.log("Jugador nuevo en la partida:", e.user);
@@ -124,9 +141,25 @@ function conectarWebSockets(gameId: string, token: string) {
 let enviando = false;
 
 async function enviarMensaje() {
+    if (!estoyVivo) {
+        alert("Estás muerto, no puedes hablar.");
+        return;
+    }
     const contenido = inputMensaje.value.trim();
     if (!contenido || !partidaID || !token) return;
     if (enviando) return;
+    const contexto = obtenerContextoJugador();
+    const miRolNorm = (contexto.miRol || '').toLowerCase().trim();
+    if (fase === 'noche') {
+        if (miRolNorm === 'nina') {
+            alert("La niña puede escuchar a los lobos, pero no hablar de noche.");
+            return;
+        }
+        if (miRolNorm !== 'lobo') {
+            alert("Solo los lobos pueden hablar por la noche.");
+            return;
+        }
+    }
     enviando = true;
     if (btnEnviarMensaje) btnEnviarMensaje.disabled = true;
     try {
@@ -148,6 +181,7 @@ async function enviarMensaje() {
         if (btnEnviarMensaje) btnEnviarMensaje.disabled = false;
     }
 }
+
 
 btnEnviarMensaje?.addEventListener('click', () => {
     enviarMensaje();
@@ -192,10 +226,20 @@ function renderizarJugadores(jugadores: Usuario[]) {
 
     const contexto = obtenerContextoJugador();
 
+    const miJugador = jugadores.find(j => j.id === contexto.miId);
+    if (miJugador) {
+        contexto.miRol = miJugador.rol;
+        sessionStorage.setItem('mi_rol', miJugador.rol);
+        estoyVivo = miJugador.vivo === 1;
+        console.log('DEBUG miRol:', contexto.miRol, 'estoyVivo:', estoyVivo);
+    }
+
     jugadores.forEach(jugador => {
         crearCartaJugador(jugador, contexto);
     });
 }
+
+
 
 
 function agregarJugadorAlTablero(jugador: Usuario) {
@@ -250,8 +294,8 @@ function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador) {
 }
 
 async function gestionarVoto(objetivo: Usuario, contexto: ContextoJugador) {
-    if (fase !== 'dia') {
-        alert("Solo se puede votar durante el día");
+    if (fase === 'noche' && contexto.miRol !== 'lobo') {
+        alert("Solo los lobos pueden votar por la noche");
         return;
     }
 
@@ -292,43 +336,57 @@ function actualizarEstilosVotacion() {
     });
 }
 
-function iniciarContador() {
-    const contador = document.getElementById('contador') as HTMLHeadingElement;
-    if (!contador) return; 
+function iniciarTemporizadorVisual() {
+    const ahora = Date.now();
+    finFaseTimestamp = ahora + (DURACION_FASE * 1000);
 
-    contador.textContent = `Fase: ${fase.toUpperCase()} | ${tiempoRestante}s`;
+    if (intervalo) clearInterval(intervalo);
+
+    const contador = document.getElementById('contador');
 
     intervalo = setInterval(() => {
-        tiempoRestante--;
-        contador.textContent = `Fase: ${fase.toUpperCase()} | ${tiempoRestante}s`;
+        const ahoraMismo = Date.now();
+        const segundosRestantes = Math.ceil((finFaseTimestamp - ahoraMismo) / 1000);
 
-        if (tiempoRestante <= 0) {
+        if (contador) {
+            contador.textContent = `Fase: ${fase.toUpperCase()} | ${segundosRestantes}s`;
+        }
+
+        if (segundosRestantes <= 0) {
             clearInterval(intervalo);
-            cambiarFase();
+            
+            intentarCambiarFase();
         }
     }, 1000);
 }
 
-function cambiarFase() {
-    const body = document.body;
+async function intentarCambiarFase() {
+    try {
+        await api.post(`/api/partidas/${partidaID}/siguiente-fase`, {
+            fase_actual_cliente: fase 
+        }, {
+             headers: { 'Authorization': `Bearer ${token}` }
+        });
+    } catch (error) {
+        console.log("Petición de cambio de fase enviada (o ignorada si ya cambió).");
+    }
+}
 
+function actualizarFondoYVotos() {
+    const body = document.body;
     if (fase === 'dia') {
-        fase = 'noche';
+        body.style.backgroundImage = "url('../img/DIA.png')";
+    } else {
         body.style.backgroundImage = "url('../img/NOCHE.png')";
         votoActual = null;
         actualizarEstilosVotacion();
-    } else {
-        fase = 'dia';
-        body.style.backgroundImage = "url('../img/DIA.png')";
     }
-
-    tiempoRestante = 60;
-    iniciarContador();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!partidaID || !token) return;
     conectarWebSockets(partidaID, token);
     cargarJuego();
-    iniciarContador();
+    iniciarTemporizadorVisual();
+    actualizarFondoYVotos();
 });
