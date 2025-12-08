@@ -81,42 +81,39 @@ function conectarWebSockets(gameId: string, token: string) {
 
 echo.private(`game.${gameId}`)
     .listen('.message.sent', (e: any) => {
-        if (!listaMensajes) return;
-
-        const contexto = obtenerContextoJugador();
-        const miRolNorm = (contexto.miRol || '').toLowerCase().trim();
-        const esNoche = fase === 'noche';
-        const soloLobos = e.solo_lobos === true;
-
-        if (esNoche && soloLobos) {
-            if (miRolNorm !== 'lobo' && miRolNorm !== 'nina') {
-                return;
-            }
+    if (!listaMensajes) return;
+    const contexto = obtenerContextoJugador();
+    const miRolNorm = (contexto.miRol || '').toLowerCase().trim();
+    const esNoche = fase === 'noche';
+    const soloLobos = e.solo_lobos === true;
+    if (esNoche && soloLobos) {
+        if (estoyVivo && miRolNorm !== 'lobo' && miRolNorm !== 'nina') {
+            return;
         }
+    }
+    const nuevoMensaje = document.createElement('li');
+    nuevoMensaje.className = 'mensaje';
 
-        const nuevoMensaje = document.createElement('li');
-        nuevoMensaje.className = 'mensaje';
+    if (e.mensaje.usuario_id === user.id) {
+        nuevoMensaje.classList.add('mensaje-propio');
+    } else {
+        nuevoMensaje.classList.add('mensaje-ajeno');
+    }
 
-        if (e.mensaje.usuario_id === user.id) {
-            nuevoMensaje.classList.add('mensaje-propio');
-        } else {
-            nuevoMensaje.classList.add('mensaje-ajeno');
-        }
+    const nombre = document.createElement('div');
+    nombre.classList.add('mensaje-nombre');
+    nombre.textContent = e.mensaje.usuario_nick;
 
-        const nombre = document.createElement('div');
-        nombre.classList.add('mensaje-nombre');
-        nombre.textContent = e.mensaje.usuario_nick;
+    const cuerpo = document.createElement('div');
+    cuerpo.classList.add('mensaje-texto');
+    cuerpo.textContent = e.mensaje.contenido;
 
-        const cuerpo = document.createElement('div');
-        cuerpo.classList.add('mensaje-texto');
-        cuerpo.textContent = e.mensaje.contenido;
+    nuevoMensaje.appendChild(nombre);
+    nuevoMensaje.appendChild(cuerpo);
 
-        nuevoMensaje.appendChild(nombre);
-        nuevoMensaje.appendChild(cuerpo);
-
-        document.getElementById('mensajes')?.appendChild(nuevoMensaje);
-        listaMensajes.scrollTop = listaMensajes.scrollHeight;
-    })
+    document.getElementById('mensajes')?.appendChild(nuevoMensaje);
+    listaMensajes.scrollTop = listaMensajes.scrollHeight;
+})
     .listen('.CambioDeFase', (e: any) => {
         console.log("Cambio de fase recibido del servidor:", e.partida.fase_actual);
         
