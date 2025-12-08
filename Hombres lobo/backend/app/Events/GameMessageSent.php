@@ -12,10 +12,12 @@ class GameMessageSent implements ShouldBroadcast
     use Dispatchable, SerializesModels;
 
     public $mensaje;
+    public $solo_lobos;
 
-    public function __construct(Mensaje $mensaje)
+    public function __construct(Mensaje $mensaje, bool $soloLobos = false)
     {
         $this->mensaje = $mensaje;
+        $this->solo_lobos = $soloLobos;
     }
 
     public function broadcastOn()
@@ -32,14 +34,15 @@ class GameMessageSent implements ShouldBroadcast
     {
         return [
             'mensaje' => [
-                'id' => $this->mensaje->id,
-                'partida_id' => $this->mensaje->partida_id,
-                'usuario_id' => $this->mensaje->usuario_id,
+                'id'           => $this->mensaje->id,
+                'partida_id'   => $this->mensaje->partida_id,
+                'usuario_id'   => $this->mensaje->usuario_id,
                 'usuario_nick' => $this->mensaje->usuario->nick,
-                'contenido' => $this->mensaje->contenido,
-                'created_at' => $this->mensaje->created_at,
-                'updated_at' => $this->mensaje->updated_at,
+                'contenido'    => $this->mensaje->contenido,
+                'created_at'   => $this->mensaje->created_at,
+                'updated_at'   => $this->mensaje->updated_at,
             ],
+            'solo_lobos' => $this->solo_lobos,
         ];
     }
 }

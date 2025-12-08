@@ -305,21 +305,34 @@ public function siguienteFase(Request $request, $id)
         $conteo = [];
 
         foreach ($votos as $voto) {
-            if ($voto->id_objetivo === null) continue;
+            if ($voto->id_objetivo === null) {
+                continue;
+            }
+
+            $jugadorVotante = JugadorPartida::find($voto->id_jugador);
+            if (!$jugadorVotante || !$jugadorVotante->vivo) {
+                continue;
+            }
+            $peso = 1;
+            if ($faseQueTermina === 'dia' &&
+                !empty($jugadorVotante->es_alcalde) &&
+                (int)$jugadorVotante->es_alcalde === 1) {
+                $peso = 2;
+            }
 
             if (!isset($conteo[$voto->id_objetivo])) {
                 $conteo[$voto->id_objetivo] = 0;
             }
-            $conteo[$voto->id_objetivo]++;
+            $conteo[$voto->id_objetivo] += $peso;
         }
 
         if (!empty($conteo)) {
             $idMasVotado = array_keys($conteo, max($conteo))[0];
 
-            $jugador = JugadorPartida::find($idMasVotado);
-            if ($jugador && $jugador->vivo) {
-                $jugador->vivo = false;
-                $jugador->save();
+            $jugadorObjetivo = JugadorPartida::find($idMasVotado);
+            if ($jugadorObjetivo && $jugadorObjetivo->vivo) {
+                $jugadorObjetivo->vivo = false;
+                $jugadorObjetivo->save();
             }
         }
 

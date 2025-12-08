@@ -79,42 +79,57 @@ function conectarWebSockets(gameId: string, token: string) {
         }
     });
 
-    echo.private(`game.${gameId}`)
+echo.private(`game.${gameId}`)
     .listen('.message.sent', (e: any) => {
-        if(!listaMensajes) return;
+        if (!listaMensajes) return;
 
-        const nuevoMensaje = document.createElement('li');
-        nuevoMensaje.className = 'mensaje'
+        const contexto = obtenerContextoJugador();
+        const miRolNorm = (contexto.miRol || '').toLowerCase().trim();
+        const esNoche = fase === 'noche';
+        const soloLobos = e.solo_lobos === true;
 
-        if(e.mensaje.usuario_id === user.id) {
-            nuevoMensaje.classList.add('mensaje-propio');
-        } else {
-            nuevoMensaje.classList.add('mensaje-ajeno')
+        if (esNoche && soloLobos) {
+            if (miRolNorm !== 'lobo' && miRolNorm !== 'nina') {
+                return;
+            }
         }
 
-        const nombre = document.createElement('div')
-        nombre.classList.add('mensaje-nombre')
-        nombre.textContent = e.mensaje.usuario_nick
+        const nuevoMensaje = document.createElement('li');
+        nuevoMensaje.className = 'mensaje';
 
-        const cuerpo = document.createElement('div')
-        cuerpo.classList.add('mensaje-texto')
-        cuerpo.textContent = e.mensaje.contenido
+        if (e.mensaje.usuario_id === user.id) {
+            nuevoMensaje.classList.add('mensaje-propio');
+        } else {
+            nuevoMensaje.classList.add('mensaje-ajeno');
+        }
 
-        nuevoMensaje.appendChild(nombre)
-        nuevoMensaje.appendChild(cuerpo)
-        
-        document.getElementById('mensajes')?.appendChild(nuevoMensaje)
-        listaMensajes.scrollTop = listaMensajes.scrollHeight
+        const nombre = document.createElement('div');
+        nombre.classList.add('mensaje-nombre');
+        nombre.textContent = e.mensaje.usuario_nick;
+
+        const cuerpo = document.createElement('div');
+        cuerpo.classList.add('mensaje-texto');
+        cuerpo.textContent = e.mensaje.contenido;
+
+        nuevoMensaje.appendChild(nombre);
+        nuevoMensaje.appendChild(cuerpo);
+
+        document.getElementById('mensajes')?.appendChild(nuevoMensaje);
+        listaMensajes.scrollTop = listaMensajes.scrollHeight;
     })
     .listen('.CambioDeFase', (e: any) => {
-            console.log("Cambio de fase recibido del servidor:", e.partida.fase_actual);
-            
-            fase = e.partida.fase_actual; 
-            
-            iniciarTemporizadorVisual(); 
-            actualizarFondoYVotos();
-            cargarJuego();
-        })
+        console.log("Cambio de fase recibido del servidor:", e.partida.fase_actual);
+        
+        fase = e.partida.fase_actual; 
+        
+        iniciarTemporizadorVisual(); 
+        actualizarFondoYVotos();
+        cargarJuego();
+    })
+    .listen('.AlcaldeElegido', (e: any) => {
+        console.log('Nuevo alcalde elegido:', e.jugador_id);
+        cargarJuego();
+    })
     .listen('.AlcaldeElegido', (e: any) => {
             console.log('Nuevo alcalde elegido:', e.jugador_id);
             cargarJuego();
@@ -136,6 +151,18 @@ async function enviarMensaje() {
     const contenido = inputMensaje.value.trim();
     if (!contenido || !partidaID || !token) return;
     if (enviando) return;
+    const contexto = obtenerContextoJugador();
+    const miRolNorm = (contexto.miRol || '').toLowerCase().trim();
+    if (fase === 'noche') {
+        if (miRolNorm === 'nina') {
+            alert("La niña puede escuchar a los lobos, pero no hablar de noche.");
+            return;
+        }
+        if (miRolNorm !== 'lobo') {
+            alert("Solo los lobos pueden hablar por la noche.");
+            return;
+        }
+    }
     enviando = true;
     if (btnEnviarMensaje) btnEnviarMensaje.disabled = true;
     try {
@@ -157,6 +184,7 @@ async function enviarMensaje() {
         if (btnEnviarMensaje) btnEnviarMensaje.disabled = false;
     }
 }
+
 
 btnEnviarMensaje?.addEventListener('click', () => {
     enviarMensaje();
