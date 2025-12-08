@@ -283,11 +283,9 @@ function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador, esBot: b
 
     div.dataset.id = jugador.id?.toString() ?? `bot-${jugador.nick}`;
 
-    if (!esBot) {
-        div.addEventListener('click', () => {
-            gestionarVoto(jugador, contexto);
-        });
-    }
+    div.addEventListener('click', () => {
+        gestionarVoto(jugador, contexto);
+    });
 
     if (votoActual === jugador.id) {
         div.classList.add('votado');
