@@ -15,7 +15,9 @@ use App\Events\AsignarRoles;
 use App\Events\AlcaldeElegido;
 use App\Events\PartidaActualizada;
 use App\Models\VotoPartida;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB; 
+use App\Events\CambioDeFase;
+use App\Models\JugadorPartida;
 
 class PartidaController extends Controller
 {
@@ -297,6 +299,10 @@ public function votar(Request $request)
             return response()->json(['error' => 'No puedes votar (estás muerto o no juegas)'], 403);
         }
 
+        if ($partida->fase_actual === 'noche' && $jugadorVotante->rol_partida !== 'lobo') {
+            return response()->json(['error' => 'Solo los lobos pueden votar por la noche'], 403);
+        }
+
         $jugadorObjetivo = DB::table('jugadores_partida')
                             ->where('id_partida', $partidaId)
                             ->where('id_usuario', $targetUserId)
@@ -384,5 +390,81 @@ public function rellenarConBots($idPartida) {
         'mensaje' => 'Se han cargado ' . $jugadoresFaltan . ' bots correctamente',
         'total_jugadores' => $partida->jugadores->count()
     ], 201);
+}
+}
+public function siguienteFase(Request $request, $id)
+{
+    $partida = Partida::findOrFail($id);
+    $faseCliente = $request->input('fase_actual_cliente');
+
+    if ($partida->fase_actual !== $faseCliente) {
+        return response()->json(['mensaje' => 'La fase ya había cambiado, ignorando petición.'], 200);
+    }
+
+    $faseQueTermina = $partida->fase_actual;
+
+    $votos = VotoPartida::where('id_partida', $partida->id)
+        ->where('tipo_fase', $faseQueTermina)
+        ->where('ronda', $partida->ronda_actual)
+        ->get();
+
+    if ($votos->count() > 0) {
+        $conteo = [];
+
+        foreach ($votos as $voto) {
+            if ($voto->id_objetivo === null) {
+                continue;
+            }
+
+            $jugadorVotante = JugadorPartida::find($voto->id_jugador);
+            if (!$jugadorVotante || !$jugadorVotante->vivo) {
+                continue;
+            }
+            $peso = 1;
+            if ($faseQueTermina === 'dia' &&
+                !empty($jugadorVotante->es_alcalde) &&
+                (int)$jugadorVotante->es_alcalde === 1) {
+                $peso = 2;
+            }
+
+            if (!isset($conteo[$voto->id_objetivo])) {
+                $conteo[$voto->id_objetivo] = 0;
+            }
+            $conteo[$voto->id_objetivo] += $peso;
+        }
+
+        if (!empty($conteo)) {
+            $idMasVotado = array_keys($conteo, max($conteo))[0];
+
+            $jugadorObjetivo = JugadorPartida::find($idMasVotado);
+            if ($jugadorObjetivo && $jugadorObjetivo->vivo) {
+                $jugadorObjetivo->vivo = false;
+                $jugadorObjetivo->save();
+            }
+        }
+
+        VotoPartida::where('id_partida', $partida->id)
+            ->where('tipo_fase', $faseQueTermina)
+            ->where('ronda', $partida->ronda_actual)
+            ->delete();
+    }
+
+    if ($partida->fase_actual === 'noche') {
+        $partida->fase_actual = 'dia';
+    } else {
+        $partida->fase_actual = 'noche';
+        $partida->ronda_actual++;
+    }
+
+    $partida->save();
+    $partida->load('jugadores');
+
+    broadcast(new CambioDeFase($partida))->toOthers();
+
+    return response()->json([
+        'mensaje' => 'Fase actualizada correctamente',
+        'fase'    => $partida->fase_actual,
+        'ronda'   => $partida->ronda_actual,
+    ]);
 }
 }
