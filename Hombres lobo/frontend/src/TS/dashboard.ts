@@ -44,6 +44,8 @@ const nuevaClaveInput = document.getElementById('nueva-clave') as HTMLInputEleme
 const botonSelectRol = document.getElementById('rol-select') as HTMLSelectElement;
 const listaEstadisticasRol = document.getElementById('estadisticas-rol-list') as HTMLUListElement;
 const divEditarUsuario = document.getElementById('editar-usuario') as HTMLDivElement;
+const inputNumeroJugadores = document.getElementById('total-jugadores') as HTMLInputElement
+const mensajeNumeroJugadores = document.getElementById('mensaje-numero-jugadores') as HTMLSpanElement
 
 function configurarModalReglas() {
     const btnAbrir = document.getElementById('btn-abrir-reglas');
@@ -177,6 +179,13 @@ function controlBotones() {
             e.preventDefault(); 
 
             const nombrePartida = modalNombrePartida.value;
+            let numeroJugadores = Number(inputNumeroJugadores.value)
+
+            if (isNaN(numeroJugadores)) {
+              alert('Introduce un número válido de jugadores.')
+              return
+            }
+
             if (!nombrePartida || nombrePartida.trim() === '') {
                 alert("Por favor, introduce un nombre para la partida.");
                 return;
@@ -192,7 +201,9 @@ function controlBotones() {
             try {
 
                 const response = await api.post('/api/partidas', 
-                { nombre_partida: nombrePartida }, 
+                { nombre_partida: nombrePartida,
+                  numero_jugadores: numeroJugadores
+                }, 
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -204,6 +215,8 @@ function controlBotones() {
                 
                 if (modalCrearPartida) modalCrearPartida.style.display = 'none';
                 modalNombrePartida.value = ''; 
+                inputNumeroJugadores.value = ''
+                mensajeNumeroJugadores.textContent = ''
                 
                 await cargarPartidas(); 
 
@@ -494,4 +507,34 @@ document.addEventListener('DOMContentLoaded', () => {
       boton.classList.toggle("activo", !visible);
     });
   });
+
+  if (inputNumeroJugadores && mensajeNumeroJugadores) {
+    inputNumeroJugadores.addEventListener('input', () => {
+      let valor = inputNumeroJugadores.value.trim()
+      
+      if (!/^\d*$/.test(valor)) {
+        mensajeNumeroJugadores.textContent = 'Solo se permiten números.'
+        mensajeNumeroJugadores.classList.add('error')
+        return
+      }
+      
+      if (valor === '') {
+        mensajeNumeroJugadores.textContent = 'Número de jugadores entre 15 y 30.'
+        mensajeNumeroJugadores.classList.add('error')
+        return
+      }
+
+      const numero = Number(valor)
+
+      if (numero < 15) {
+        mensajeNumeroJugadores.textContent = 'Mínimo permitido: 15 jugadores.'
+        mensajeNumeroJugadores.classList.add('error')
+      } else if (numero > 30) {
+        mensajeNumeroJugadores.textContent = 'Máximo permitido: 30 jugadores.'
+        mensajeNumeroJugadores.classList.add('error')
+      }
+
+      inputNumeroJugadores.value = valor.toString()
+    })
+  }
 });

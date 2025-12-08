@@ -11,6 +11,7 @@ class JugadorPartida extends Model
     protected $fillable = [
         'id_partida',
         'id_usuario',
+        'nick_bot',
         'es_bot',
         'vivo',
         'rol_partida',

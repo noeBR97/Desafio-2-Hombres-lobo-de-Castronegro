@@ -606,3 +606,29 @@ footer a:hover {
 .texto-reglas ul {
     padding-left: 20px;
 }
+
+/* implementacion posterior -> input de numero de jugadores */
+#numero-jugadores-input {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--color-input-bg);
+    color: var(--color-input-text);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 1.1em;
+    box-sizing: border-box;
+    font-family: 'Cinzel', serif;
+    margin-bottom: 0.5rem;
+}
+
+#mensaje-numero-jugadores {
+    display: block;
+    font-size: 0.9em;
+    font-family: 'Cinzel', serif;
+    color: var(--color-text-muted);
+    transition: color 0.3s ease;
+}
+
+#mensaje-numero-jugadores.error {
+    color: #FF5A5A; /* rojo suave para error */
+}

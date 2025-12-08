@@ -14,6 +14,7 @@ interface Usuario {
     rol: string;
     vivo: number;
     es_alcalde: number;
+    es_bot: number
 }
 
 interface Juego {
@@ -131,6 +132,15 @@ echo.private(`game.${gameId}`)
             console.log('Nuevo alcalde elegido:', e.jugador_id);
             cargarJuego();
         })
+    .listen('.tiempo.actualizado', (e: any) => {
+        const contador = document.getElementById("contador");
+        if (contador) {
+            contador.textContent = e.tiempoRestante;
+        }
+    })
+    .listen('.PartidaActualizada', (e:any) => {
+        renderizarJugadores(e.jugadores)
+    });
     echo.private(`lobby.${gameId}`)
         .listen('.JugadorUnido', (e: any) => {
             console.log("Jugador nuevo en la partida:", e.user);
@@ -226,6 +236,10 @@ function renderizarJugadores(jugadores: Usuario[]) {
 
     const contexto = obtenerContextoJugador();
 
+    const humanos = jugadores.filter(j => j.es_bot === 0);
+    const bots = jugadores.filter(j => j.es_bot === 1);
+
+    humanos.forEach(jugador => {
     const miJugador = jugadores.find(j => j.id === contexto.miId);
     if (miJugador) {
         contexto.miRol = miJugador.rol;
@@ -236,6 +250,10 @@ function renderizarJugadores(jugadores: Usuario[]) {
 
     jugadores.forEach(jugador => {
         crearCartaJugador(jugador, contexto);
+    });
+
+    bots.forEach(bot => {
+        crearCartaJugador(bot, contexto, true);
     });
 }
 
@@ -258,24 +276,26 @@ function agregarJugadorAlTablero(jugador: Usuario) {
     }
 }
 
-function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador) {
+function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador, esBot: boolean = false) {
     if (!tableroJugadores) return;
 
     const div = document.createElement('div');
     div.className = 'jugador';
 
-    div.dataset.id = jugador.id.toString();
+    div.dataset.id = jugador.id?.toString() ?? `bot-${jugador.nick}`;
 
-    div.addEventListener('click', () => {
-        gestionarVoto(jugador, contexto);
-    });
+    if (!esBot) {
+        div.addEventListener('click', () => {
+            gestionarVoto(jugador, contexto);
+        });
+    }
 
     if (votoActual === jugador.id) {
         div.classList.add('votado');
     }
 
     const span = document.createElement('span');
-    span.textContent = jugador.nick;
+    span.textContent = jugador.nick + (esBot ? ' (BOT)' : '');
 
     const apariencia = calcularAparienciaJugador(jugador, contexto);
 
