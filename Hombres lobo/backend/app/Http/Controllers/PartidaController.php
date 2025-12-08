@@ -17,7 +17,6 @@ use App\Events\PartidaActualizada;
 use App\Models\VotoPartida;
 use Illuminate\Support\Facades\DB; 
 use App\Events\CambioDeFase;
-use App\Models\JugadorPartida;
 
 class PartidaController extends Controller
 {
@@ -126,65 +125,82 @@ class PartidaController extends Controller
 
 public function iniciar(Request $request, $id)
 {
-    $partida = Partida::with('jugadores')->findOrFail($id);
+    $partida = Partida::findOrFail($id);
 
     if ($partida->id_creador_partida !== Auth::id()) {
         return response()->json(['error' => 'No eres el lider'], 403);
     }
 
     $this->rellenarConBots($partida->id);
-    $partida->load('jugadores');
 
-    $jugadores = $partida->jugadores;
+    $jugadoresPartida = JugadorPartida::where('id_partida', $partida->id)->get();
 
-    $humanos = $partida->jugadores->where('pivot.es_bot', false);
+    $humanos      = $jugadoresPartida->where('es_bot', false);
     $totalHumanos = $humanos->count();
-
-    //humanos + bots
-    $total = $jugadores->count();
+    $total        = $jugadoresPartida->count();
 
     if ($total >= 12) {
-        $numLobos = 3;
+        $numLobos = 4;
     } elseif ($total >= 8) {
         $numLobos = 2;
     } else {
         $numLobos = 1;
     }
 
-    $roles = [];
-
-    for ($i = 0; $i < $numLobos; $i++) {
-        $roles[] = 'lobo';
-    }
-
+    $idNina = null;
     if ($totalHumanos >= 2) {
-        $roles[] = 'nina';
+        $nina   = $humanos->random();
+        $idNina = $nina->id;
     }
 
-    while (count($roles) < $total) {
-        $roles[] = 'aldeano';
+    $candidatos = $jugadoresPartida
+        ->where('id', '!=', $idNina)
+        ->values();
+
+    $humanosCandidatos = $candidatos->where('es_bot', false);
+
+    $humanoLoboId = null;
+    if ($numLobos > 0 && $humanosCandidatos->isNotEmpty()) {
+        $humanoLoboId = $humanosCandidatos->random()->id;
     }
 
-    shuffle($roles);
+    $rolesPool = [];
 
-    foreach ($jugadores as $jugador) {
-        $rolAsignado = array_pop($roles);
+    $lobosRestantes = $numLobos - ($humanoLoboId ? 1 : 0);
 
-        if ($rolAsignado === 'nina' && $jugador->pivot->es_bot) {
-            $rolesValidos = array_filter($roles, fn($r) => $r !== 'nina');
-            $rolAsignado = array_shift($rolesValidos);
+    for ($i = 0; $i < $lobosRestantes; $i++) {
+        $rolesPool[] = 'lobo';
+    }
+    $slotsRestantes = $candidatos->count() - ($humanoLoboId ? 1 : 0);
 
-            $roles = array_merge($rolesValidos, $roles);
+    while (count($rolesPool) < $slotsRestantes) {
+        $rolesPool[] = 'aldeano';
+    }
+
+    shuffle($rolesPool);
+
+    foreach ($candidatos as $jug) {
+        if ($jug->id === $humanoLoboId) {
+            $rolAsignado = 'lobo';
+        } else {
+            $rolAsignado = array_pop($rolesPool) ?? 'aldeano';
         }
 
-        $partida->jugadores()->updateExistingPivot($jugador->id, [
-            'rol_partida' => $rolAsignado,
+        $jug->rol_partida = $rolAsignado;
+        $jug->vivo        = true;
+        $jug->es_alcalde  = false;
+        $jug->save();
+    }
+
+    if ($idNina !== null) {
+        JugadorPartida::where('id', $idNina)->update([
+            'rol_partida' => 'nina',
             'vivo'        => true,
             'es_alcalde'  => false,
         ]);
     }
 
-    $partida->estado = 'en_curso';
+    $partida->estado       = 'en_curso';
     $partida->fecha_inicio = now();
     $partida->save();
 
@@ -202,28 +218,30 @@ public function iniciar(Request $request, $id)
 }
 
 
-   public function estado($id)
+public function estado($id)
 {
     $partida = Partida::with('jugadores')->findOrFail($id);
+
     $hayAlcaldeVivo = $partida->jugadores->contains(function ($j) {
         return (int) $j->pivot->es_alcalde === 1
             && (int) $j->pivot->vivo === 1;
     });
 
-    if (! $hayAlcaldeVivo) {
+    if (!$hayAlcaldeVivo) {
         $this->asignarAlcaldeAleatorio($partida);
         $partida->load('jugadores');
     }
 
     $jugadores = $partida->jugadores->map(function ($j) {
-            return [
-                'id'         => $j->id,
-                'nick'       => $j->nick,
-                'rol'        => $j->pivot->rol_partida,
-                'vivo'       => (int) $j->pivot->vivo,
-                'es_alcalde' => (int) $j->pivot->es_alcalde,
-                'es_bot'     => $j->pivot->es_bot
-            ];
+        return [
+            'id'         => $j->pivot->id,
+            'id_usuario' => $j->id,
+            'nick'       => $j->nick,
+            'rol'        => $j->pivot->rol_partida,
+            'vivo'       => (int) $j->pivot->vivo,
+            'es_alcalde' => (int) $j->pivot->es_alcalde,
+            'es_bot'     => (int) $j->pivot->es_bot,
+        ];
     })->toArray();
 
     $bots = \DB::table('jugadores_partida')
@@ -234,12 +252,13 @@ public function iniciar(Request $request, $id)
 
     foreach ($bots as $bot) {
         $jugadores[] = [
-            'id'         => null,
+            'id'         => $bot->id,
+            'id_usuario' => null,
             'nick'       => $bot->nick_bot,
             'rol'        => $bot->rol_partida,
             'vivo'       => (int) $bot->vivo,
             'es_alcalde' => (int) $bot->es_alcalde,
-            'es_bot'     => (int) $bot->es_bot
+            'es_bot'     => (int) $bot->es_bot,
         ];
     }
 
@@ -247,9 +266,10 @@ public function iniciar(Request $request, $id)
         'id'             => $partida->id,
         'nombre_partida' => $partida->nombre_partida,
         'estado'         => $partida->estado,
-        'jugadores'      => $jugadores
+        'jugadores'      => $jugadores,
     ]);
 }
+
 
 private function asignarAlcaldeAleatorio(Partida $partida): ?int
 {
@@ -277,104 +297,79 @@ private function asignarAlcaldeAleatorio(Partida $partida): ?int
 }
 
 public function votar(Request $request)
-    {
+{
+    $request->validate([
+        'partida_id' => 'required|exists:partidas,id',
+        'voto_a'     => 'required|exists:jugadores_partida,id',
+    ]);
 
-        $partida = Partida::findOrFail($request->partida_id);
+    $partida   = Partida::findOrFail($request->partida_id);
+    $partidaId = $partida->id;
+    $userId    = Auth::id();
+    $targetJugadorId = $request->voto_a;
 
-        $request->validate([
-            'partida_id' => 'required|exists:partidas,id',
-            'voto_a'     => 'required|exists:users,id',
-        ]);
+    $jugadorVotante = JugadorPartida::where('id_partida', $partidaId)
+        ->where('id_usuario', $userId)
+        ->first();
 
-        $userId = Auth::id();
-        $partidaId = $request->partida_id;
-        $targetUserId = $request->voto_a;
-
-        $jugadorVotante = DB::table('jugadores_partida')
-                            ->where('id_partida', $partidaId)
-                            ->where('id_usuario', $userId)
-                            ->first();
-
-        if (!$jugadorVotante || !$jugadorVotante->vivo) {
-            return response()->json(['error' => 'No puedes votar (estás muerto o no juegas)'], 403);
-        }
-
-        if ($partida->fase_actual === 'noche' && $jugadorVotante->rol_partida !== 'lobo') {
-            return response()->json(['error' => 'Solo los lobos pueden votar por la noche'], 403);
-        }
-
-        $jugadorObjetivo = DB::table('jugadores_partida')
-                            ->where('id_partida', $partidaId)
-                            ->where('id_usuario', $targetUserId)
-                            ->first();
-
-        if (!$jugadorObjetivo || !$jugadorObjetivo->vivo) {
-            return response()->json(['error' => 'El objetivo no es válido'], 400);
-        }
-
-        VotoPartida::updateOrCreate(
-            [
-                'id_partida' => $partidaId,
-                'id_jugador' => $jugadorVotante->id,
-                'ronda'      => $partida->ronda_actual,
-            ],
-            [
-                'id_objetivo' => $jugadorObjetivo->id,
-                'tipo_fase'   => $partida->fase_actual
-            ]
-        );
-
-        return response()->json(['message' => 'Voto registrado']);
+    if (!$jugadorVotante || !$jugadorVotante->vivo) {
+        return response()->json(['error' => 'No puedes votar (estás muerto o no juegas)'], 403);
     }
 
-public function rellenarConBots($idPartida) {
-    $partida = Partida::with('jugadores')->findOrFail($idPartida);
-    $totalActual = $partida->jugadores->count();
+    if ($partida->fase_actual === 'noche' && $jugadorVotante->rol_partida !== 'lobo') {
+        return response()->json(['error' => 'Solo los lobos pueden votar por la noche'], 403);
+    }
+
+    $jugadorObjetivo = JugadorPartida::where('id_partida', $partidaId)
+        ->where('id', $targetJugadorId)
+        ->first();
+
+    if (!$jugadorObjetivo || !$jugadorObjetivo->vivo) {
+        return response()->json(['error' => 'El objetivo no es válido'], 400);
+    }
+
+    VotoPartida::updateOrCreate(
+        [
+            'id_partida' => $partidaId,
+            'id_jugador' => $jugadorVotante->id,
+            'ronda'      => $partida->ronda_actual,
+        ],
+        [
+            'id_objetivo' => $jugadorObjetivo->id,
+            'tipo_fase'   => $partida->fase_actual,
+        ]
+    );
+
+    return response()->json(['message' => 'Voto registrado']);
+}
+
+public function rellenarConBots($idPartida)
+{
+    $partida = Partida::findOrFail($idPartida);
+
+    $totalActual  = JugadorPartida::where('id_partida', $idPartida)->count();
     $maxJugadores = $partida->max_jugadores;
 
-    if($totalActual >= $maxJugadores) {
+    if ($totalActual >= $maxJugadores) {
         return;
     }
 
     $jugadoresFaltan = $maxJugadores - $totalActual;
 
-    $roles = ['aldeano', 'lobo'];
-
     $bots = [];
 
-    for ($i=0; $i < $jugadoresFaltan; $i++) {
-        $rol = $roles[array_rand($roles)];
-
+    for ($i = 0; $i < $jugadoresFaltan; $i++) {
         $bots[] = [
-            'id_partida' => $partida->id,
-            'id_usuario' => null,
-            'es_bot' => true,
-            'vivo' => true,
-            'es_alcalde' => false,
-            'rol_partida' => $rol,
-            'nick_bot' => 'Bot_'.str_pad($i + 1, 2, '0', STR_PAD_LEFT),
-            'created_at' => now(),
-            'updated_at' => now()
+            'id_partida'  => $partida->id,
+            'id_usuario'  => null,
+            'es_bot'      => true,
+            'vivo'        => true,
+            'es_alcalde'  => false,
+            'rol_partida' => 'sin_asignar',
+            'nick_bot'    => 'Bot_'.str_pad($i + 1, 2, '0', STR_PAD_LEFT),
+            'created_at'  => now(),
+            'updated_at'  => now(),
         ];
-    }
-
-    //miramos si hay algun jugador como aldeano o como lobo
-    $jugadorAldeano = JugadorPartida::where('id_partida', $idPartida)
-    ->where('es_bot', false)
-    ->where('rol_partida', 'aldeano')
-    ->exists();
-
-    $jugadorLobo = JugadorPartida::where('id_partida', $idPartida)
-    ->where('es_bot', false)
-    ->where('rol_partida', 'lobo')
-    ->exists();
-
-    if(!$jugadorAldeano && isset($bots[0])) {
-        $bots[0]['rol_partida'] = 'aldeano';
-    }
-
-    if(!$jugadorLobo && isset($bots[1])) {
-        $bots[1]['rol_partida'] = 'lobo';
     }
 
     JugadorPartida::insert($bots);
@@ -382,16 +377,9 @@ public function rellenarConBots($idPartida) {
     $partida->numero_jugadores += $jugadoresFaltan;
     $partida->save();
 
-    $partida->load('jugadores');
-
     broadcast(new PartidaActualizada($partida->id))->toOthers();
+}
 
-    return response()->json([
-        'mensaje' => 'Se han cargado ' . $jugadoresFaltan . ' bots correctamente',
-        'total_jugadores' => $partida->jugadores->count()
-    ], 201);
-}
-}
 public function siguienteFase(Request $request, $id)
 {
     $partida = Partida::findOrFail($id);

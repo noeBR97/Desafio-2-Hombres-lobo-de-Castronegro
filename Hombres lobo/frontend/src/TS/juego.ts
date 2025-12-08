@@ -10,11 +10,12 @@ import { calcularAparienciaJugador, type ContextoJugador } from './roles';
 
 interface Usuario {
     id: number;
+    id_usuario: number | null;
     nick: string;
     rol: string;
     vivo: number;
     es_alcalde: number;
-    es_bot: number
+    es_bot: number;
 }
 
 interface Juego {
@@ -236,19 +237,17 @@ function renderizarJugadores(jugadores: Usuario[]) {
 
     const contexto = obtenerContextoJugador();
 
-    const humanos = jugadores.filter(j => j.es_bot === 0);
-    const bots = jugadores.filter(j => j.es_bot === 1);
-
-    humanos.forEach(jugador => {
-    const miJugador = jugadores.find(j => j.id === contexto.miId);
+    const miJugador = jugadores.find(j => j.id_usuario === contexto.miId);
     if (miJugador) {
         contexto.miRol = miJugador.rol;
         sessionStorage.setItem('mi_rol', miJugador.rol);
         estoyVivo = miJugador.vivo === 1;
         console.log('DEBUG miRol:', contexto.miRol, 'estoyVivo:', estoyVivo);
     }
+    const humanos = jugadores.filter(j => j.es_bot === 0);
+    const bots    = jugadores.filter(j => j.es_bot === 1);
 
-    jugadores.forEach(jugador => {
+    humanos.forEach(jugador => {
         crearCartaJugador(jugador, contexto);
     });
 
@@ -256,9 +255,6 @@ function renderizarJugadores(jugadores: Usuario[]) {
         crearCartaJugador(bot, contexto, true);
     });
 }
-
-
-
 
 function agregarJugadorAlTablero(jugador: Usuario) {
     if (!tableroJugadores) return;
@@ -282,15 +278,13 @@ function crearCartaJugador(jugador: Usuario, contexto: ContextoJugador, esBot: b
     const div = document.createElement('div');
     div.className = 'jugador';
 
-    div.dataset.id = jugador.id?.toString() ?? `bot-${jugador.nick}`;
+    div.dataset.id = jugador.id.toString();
 
-    if (!esBot) {
-        div.addEventListener('click', () => {
-            gestionarVoto(jugador, contexto);
-        });
-    }
+    div.addEventListener('click', () => {
+        gestionarVoto(jugador, contexto);
+    });
 
-    if (votoActual === jugador.id) {
+    if (votoActual !== null && votoActual === jugador.id) {
         div.classList.add('votado');
     }
 
@@ -319,7 +313,15 @@ async function gestionarVoto(objetivo: Usuario, contexto: ContextoJugador) {
         return;
     }
 
-    if (objetivo.id === contexto.miId) {
+    const miRolNorm = (contexto.miRol || '').toLowerCase().trim();
+    const rolObjetivoNorm = (objetivo.rol || '').toLowerCase().trim();
+
+    if (fase === 'noche' && miRolNorm === 'lobo' && rolObjetivoNorm === 'lobo') {
+        alert("No puedes votar a otro lobo, es que quieres perder?.");
+        return;
+    }
+
+    if (objetivo.id_usuario === contexto.miId) {
         alert("No puedes votarte a ti mismo");
         return;
     }
@@ -329,14 +331,14 @@ async function gestionarVoto(objetivo: Usuario, contexto: ContextoJugador) {
     try {
         await api.post('/api/partida/votar', {
             partida_id: partidaID,
-            voto_a: objetivo.id 
+            voto_a: objetivo.id,
         }, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         console.log(`Voto registrado a ${objetivo.nick}`);
         votoActual = objetivo.id;
-        actualizarEstilosVotacion(); 
+        actualizarEstilosVotacion();
 
     } catch (error: any) {
         console.error("Error al votar:", error);
