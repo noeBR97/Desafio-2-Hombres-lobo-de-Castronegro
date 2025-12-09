@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../CSS/juego.css">
 </head>
 <body>
+    <button id="btn-abandonar" class="btn-abandonar">Abandonar Partida</button>
     <div class="game-wrapper">
         <h1 class="titulo-juego" id="titulo-juego"></h1>
         <h2 id="contador" class="contador-fase"></h2>
@@ -25,10 +26,16 @@
             </div>
         </div>
     </div>
-</section>
-</div>
+    
+    <div id="modal-resultado" class="modal-resultado">
+        <div class="modal-contenido">
+            <h2 id="resultado-titulo">Fin de la partida</h2>
+            <p id="resultado-mensaje"></p>
+            <div id="resultado-lista"></div>
+            <button id="btn-salir" class="btn-salir">Salir al lobby</button>
+        </div>
+    </div>
 
-</div>
 </main>
 <script type="module" src="../../src/TS/juego.ts"></script>
 </body>

@@ -44,6 +44,7 @@ const inputMensaje = document.getElementById('input-mensaje') as HTMLInputElemen
 const btnEnviarMensaje = document.getElementById('enviar-mensaje') as HTMLButtonElement;
 const tableroJugadores = document.getElementById('juego-jugadores-chat') as HTMLDivElement;
 const tituloJuego = document.getElementById('titulo-juego');
+const btnAbandonar = document.getElementById('btn-abandonar') as HTMLButtonElement;
 
 //parámetros del juego
 const partidaID = getGameIdFromUrl();
@@ -132,10 +133,6 @@ echo.private(`game.${gameId}`)
         narradorDecir(`El jugador ${e.jugador_nick} ha sido elegido alcalde.`);
         cargarJuego();
     })
-    .listen('.AlcaldeElegido', (e: any) => {
-            console.log('Nuevo alcalde elegido:', e.jugador_id);
-            cargarJuego();
-        })
     .listen('.tiempo.actualizado', (e: any) => {
         const contador = document.getElementById("contador");
         if (contador) {
@@ -146,9 +143,39 @@ echo.private(`game.${gameId}`)
         renderizarJugadores(e.jugadores)
         if (e.jugador_muerto) {
             narradorDecir(`El jugador ${e.jugador_muerto.nick} ha muerto.`);
+            cargarJuego();
         }
     })
     .listen('.NarradorHabla', (e: any) => {
+        if (e.solo_lobos) {
+            const contexto = obtenerContextoJugador();
+            const miRol = (contexto.miRol || '').toLowerCase().trim();
+            
+            if (miRol !== 'lobo' && miRol !== 'nina') {
+                return;
+            }
+        }
+        
+        narradorDecir(e.mensaje);
+    })
+    .listen('.fin.partida', (e: any) => {
+        console.log("Fin de la partida recibido:", e);
+        
+        mostrarModalResultado({
+            mensaje: e.mensaje,
+            ganadores: e.ganadores
+        });
+    });
+
+    echo.private(`narrador.game.${gameId}`)
+    .listen('.NarradorHabla', (e: any) => {
+        if (e.solo_lobos) {
+            const contexto = obtenerContextoJugador();
+            const miRol = (contexto.miRol || '').toLowerCase().trim();
+            if (miRol !== 'lobo' && miRol !== 'nina') {
+                return;
+            }
+        }
         narradorDecir(e.mensaje);
     });
 
@@ -426,6 +453,57 @@ function narradorDecir(texto: string) {
     listaMensajes.scrollTop = listaMensajes.scrollHeight;
 }
 
+function mostrarModalResultado(data: { mensaje: string, ganadores: any[] }) {
+    const modal = document.getElementById("modal-resultado");
+    const titulo = document.getElementById("resultado-titulo");
+    const mensaje = document.getElementById("resultado-mensaje");
+    const lista = document.getElementById("resultado-lista");
+
+    if (!modal || !titulo || !mensaje || !lista) return;
+
+    modal.classList.add("activo");
+
+    mensaje.textContent = data.mensaje ?? "La partida ha terminado.";
+
+    lista.innerHTML = "";
+
+    if (data.ganadores && data.ganadores.length > 0) {
+        data.ganadores.forEach((g: any) => {
+            const div = document.createElement("div");
+            div.className = "resultado-jugador";
+            div.textContent = `${g.nick} – ${g.rol}`;
+            lista.appendChild(div);
+        });
+    }
+
+    modal.classList.add("activo");
+
+    const btnSalir = document.getElementById("btn-salir");
+    btnSalir?.addEventListener("click", () => {
+        window.location.href = "/HTML/dashboard.html";
+    });
+}
+
+async function abandonarPartida() {
+    if (!confirm("¿Estás seguro de que quieres abandonar la partida?")) {
+        return;
+    }
+
+    try {
+        await api.post(`/api/partidas/${partidaID}/salir`, {}, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        
+        window.location.href = '/HTML/dashboard.html';
+
+    } catch (error) {
+        console.error("Error al salir de la partida:", error);
+        window.location.href = '/HTML/dashboard.html';
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!partidaID || !token) return;
@@ -433,4 +511,5 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarJuego();
     iniciarTemporizadorVisual();
     actualizarFondoYVotos();
+    btnAbandonar?.addEventListener('click', abandonarPartida);
 });

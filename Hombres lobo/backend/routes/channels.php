@@ -24,6 +24,9 @@ Broadcast::channel('game.{partidaID}', function ($user, $partidaID) {
     return $partida->jugadores()->where('id_usuario', $user->id)->exists();
 });
 
-Broadcast::channel('narrador.game.{id}', function () {
-    return true;
+Broadcast::channel('narrador.game.{id}', function ($user, $id) {
+    return \DB::table('jugadores_partida')
+        ->where('id_partida', $id)
+        ->where('id_usuario', $user->id)
+        ->exists();
 });

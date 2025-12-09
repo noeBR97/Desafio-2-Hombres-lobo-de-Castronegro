@@ -110,6 +110,7 @@ body {
         flex-direction: column;
         height: auto; 
         overflow-y: auto; 
+        margin-top: 50px; 
     }
 
     .juego-jugadores-chat {
@@ -120,8 +121,37 @@ body {
         padding: 10px;
     }
 
+    .btn-abandonar {
+        top: 10px;
+        left: 10px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        background-color: rgba(138, 3, 3, 0.95); 
+        width: auto;
+    }
+
+    .titulo-juego {
+        font-size: 1.5rem;
+        margin-top: 50px; 
+    }
+
+    .modal-contenido {
+        width: 90%;
+        padding: 20px;
+    }
 }
-/* ESTILOS CHAT */
+
+@media (max-width: 480px) {
+    .juego-jugadores-chat {
+        grid-template-columns: repeat(3, 1fr); 
+    }
+
+    .btn-abandonar {
+        font-size: 0.75rem;
+        padding: 5px 10px;
+    }
+}
+
 .mensajes {
     flex: 1;
     overflow-y: auto;
@@ -178,6 +208,7 @@ body {
     gap: 10px;
     margin-top: 10px;
     padding-top: 5px;
+    border-radius: 5px;
     border-top: 1px solid var(--color-border);
 }
 
@@ -245,4 +276,84 @@ body {
     width: 80%;
     max-width: 90%;
     text-align: center;
+}
+
+.modal-resultado {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+}
+
+.modal-resultado.activo {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-resultado.oculto {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-contenido {
+    background: #222;
+    color: white;
+    padding: 30px;
+    width: 450px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    animation: aparecer .25s ease;
+}
+
+@keyframes aparecer {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.btn-salir {
+    margin-top: 20px;
+    padding: 10px 25px;
+    background: #d9534f;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-salir:hover {
+    background: #c9302c;
+}
+
+.btn-abandonar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    background-color: rgba(138, 3, 3, 0.8); 
+    color: #E0E0E0;
+    border: 1px solid var(--color-text-muted);
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    z-index: 100; 
+    transition: all 0.3s ease;
+}
+
+.btn-abandonar:hover {
+    background-color: #d9534f;
+    box-shadow: 0 0 10px rgba(217, 83, 79, 0.5);
+    transform: scale(1.05);
 }

@@ -21,6 +21,7 @@ use App\Events\CambioDeFase;
 use App\Services\BotService;
 use App\Events\NarradorHabla;
 use App\Models\User;
+use App\Events\FinPartida;
 
 class PartidaController extends Controller
 {
@@ -286,24 +287,39 @@ private function asignarAlcaldeAleatorio(Partida $partida): ?int
     $partida->load('jugadores');
 
     $vivos = $partida->jugadores->filter(function ($j) {
-        return (int) $j->pivot->vivo === 1 && !$j->pivot->es_bot;
+        return (int) $j->pivot->vivo === 1; 
     });
 
     if ($vivos->isEmpty()) {
-        return null;
+        $botVivo = JugadorPartida::where('id_partida', $partida->id)
+                    ->where('es_bot', true)
+                    ->where('vivo', true)
+                    ->inRandomOrder()
+                    ->first();
+        
+        if (!$botVivo) return null;
+        $alcalde = $botVivo; 
+    } else {
+        $alcalde = $vivos->random(); 
     }
 
-    $alcalde = $vivos->random();
+    JugadorPartida::where('id_partida', $partida->id)->update(['es_alcalde' => false]);
+    
+    $idTablaIntermedia = isset($alcalde->pivot) ? $alcalde->pivot->id : $alcalde->id;
 
-    foreach ($partida->jugadores as $jugador) {
-        $partida->jugadores()->updateExistingPivot($jugador->id, [
-            'es_alcalde' => $jugador->id === $alcalde->id,
-        ]);
+    JugadorPartida::where('id', $idTablaIntermedia)->update(['es_alcalde' => true]);
+
+    $nickAlcalde = 'Desconocido';
+    
+    if (isset($alcalde->nick)) {
+        $nickAlcalde = $alcalde->nick;
+    } elseif (isset($alcalde->nick_bot)) {
+        $nickAlcalde = $alcalde->nick_bot;
     }
 
-    broadcast(new AlcaldeElegido($partida->id, $alcalde->id))->toOthers();
+    broadcast(new AlcaldeElegido($partida->id, $idTablaIntermedia, $nickAlcalde))->toOthers();
 
-    return $alcalde->id;
+    return $idTablaIntermedia;
 }
 
 public function votar(Request $request)
@@ -361,9 +377,12 @@ public function votar(Request $request)
 
     $miNick = Auth::user()->nick;
 
+    $soloLobos = $partida->fase_actual === 'noche';
+
     broadcast(new NarradorHabla(
-        $partidaId, 
-        "{$miNick} ha votado a {$nickObjetivo}."
+        $partidaId,
+        "{$miNick} ha votado a {$nickObjetivo}.",
+        $soloLobos
     ));
 
     return response()->json(['message' => 'Voto registrado']);
@@ -420,6 +439,86 @@ private function rellenarConBots(int $idPartida): void
     $partida->save();
 
     broadcast(new PartidaActualizada($partida->id))->toOthers();
+}
+
+private function comprobarFinDePartida($partida)
+{
+    $jugadoresVivos = JugadorPartida::where('id_partida', $partida->id)
+        ->where('vivo', true)
+        ->get();
+
+    $numLobos = $jugadoresVivos->where('rol_partida', 'lobo')->count();
+    $numAldeanos = $jugadoresVivos->where('rol_partida', '!=', 'lobo')->count();
+
+    $listaGanadores = null;
+    $mensajeFin = "";
+
+    if ($numLobos === 0 && $numAldeanos > 0) {
+        $mensajeFin = "¡Los aldeanos han ganado la partida! Han eliminado a todos los lobos.";
+        $listaGanadores = JugadorPartida::where('id_partida', $partida->id)
+            ->where('rol_partida', '!=', 'lobo')
+            ->get();
+    } elseif ($numLobos >= $numAldeanos && $numLobos > 0) {
+        $mensajeFin = "¡Los Hombres Lobo han ganado la partida! Han devorado a la aldea.";
+        $listaGanadores = JugadorPartida::where('id_partida', $partida->id)
+            ->where('rol_partida', 'lobo')
+            ->get();
+    }
+
+    if ($listaGanadores) {
+
+        $todosLosJugadores = JugadorPartida::where('id_partida', $partida->id)->get();
+
+        foreach ($todosLosJugadores as $jugador) {
+            if (!$jugador->id_usuario) {
+                continue; 
+            }
+
+            $user = User::find($jugador->id_usuario);
+
+            if (!$user) continue;
+
+            $user->partidas_jugadas++;
+
+            $gana = $listaGanadores->contains('id', $jugador->id);
+
+            if ($gana) {
+                $user->partidas_ganadas++;
+            } else {
+                $user->partidas_perdidas++;
+            }
+
+            $user->save();
+        }
+
+        $partida->estado = 'finalizada';
+        $partida->save();
+
+        $ganadoresFormateados = $listaGanadores->map(function ($jugador) {
+            $nick = 'Desconocido';
+            
+            if ($jugador->id_usuario) {
+                $user = User::find($jugador->id_usuario);
+                $nick = $user ? $user->nick : 'Humano';
+            } else {
+                $nick = $jugador->nick_bot;
+            }
+
+            return [
+                'nick' => $nick,
+                'rol'  => $jugador->rol_partida 
+            ];
+        })->toArray();
+
+        event(new FinPartida(
+            $partida->id,
+            $mensajeFin,
+            $ganadoresFormateados
+        ));
+        return true;
+    }
+
+    return false;
 }
 
 public function siguienteFase(Request $request, $id)

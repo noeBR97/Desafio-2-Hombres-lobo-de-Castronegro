@@ -109,6 +109,7 @@ h2 {
     display: flex;
     justify-content: center;
     gap: 20px;
+    border-radius: 5px;
 }
 
 .btn-iniciar, .btn-salir {
@@ -119,6 +120,7 @@ h2 {
     cursor: pointer;
     border: 2px solid var(--color-text-muted);
     transition: all 0.3s;
+    border-radius: 5px;
 }
 
 .btn-iniciar {
