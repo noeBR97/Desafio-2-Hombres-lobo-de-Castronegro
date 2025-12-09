@@ -20,7 +20,6 @@ use Illuminate\Support\Facades\DB;
 use App\Events\CambioDeFase;
 use App\Services\BotService;
 use App\Events\NarradorHabla;
-use App\Models\User;
 use App\Events\FinPartida;
 
 class PartidaController extends Controller

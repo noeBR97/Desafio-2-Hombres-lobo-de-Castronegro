@@ -29,7 +29,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/usuarios/registrar', [AuthController::class, 'registrar']);
 Route::post('/validar-username', [UsuarioController::class,'validarUserName']);
 Route::post('/validar-email', [UsuarioController::class,'validarEmail']);
-Route::get('usuarios/avatares', [UsuarioController::class, 'listaAvatares']);
+Route::get('/usuarios/avatares', [UsuarioController::class, 'listaAvatares']);
 
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
