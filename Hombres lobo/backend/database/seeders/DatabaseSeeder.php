@@ -16,50 +16,62 @@ class DatabaseSeeder extends Seeder
     {
         $usuariosGenerados = [];
 
-        // Crear 10 usuarios "normales" aleatorios
-        $usuarios = User::factory()->count(10)->make();
+        /**
+         * 1) Crear usuarios "humanos" solo si no hay ninguno
+         */
+        $yaHayHumanos = User::where('rol_corp', '!=', 'bot')->exists();
 
-        foreach ($usuarios as $index => $userData) {
+        if (!$yaHayHumanos) {
+            // Crear 10 usuarios "normales" aleatorios SOLO la primera vez
+            $usuarios = User::factory()->count(10)->make();
 
-            $passwordPlano = "password" . ($index + 1);
+            foreach ($usuarios as $index => $userData) {
+                $passwordPlano = "password" . ($index + 1);
 
-            $user = User::create([
-                'nombre'            => $userData->nombre,
-                'apellido1'         => $userData->apellido1,
-                'apellido2'         => $userData->apellido2,
-                'nick'              => $userData->nick,
-                'correo'            => $userData->correo,
-                'clave'             => Hash::make($passwordPlano),
-                'rol_corp'          => $userData->rol_corp,
-                'avatar_predefinido'=> 'avatar-lobo.png',
-            ]);
+                $user = User::create([
+                    'nombre'             => $userData->nombre,
+                    'apellido1'          => $userData->apellido1,
+                    'apellido2'          => $userData->apellido2,
+                    'nick'               => $userData->nick,
+                    'correo'             => $userData->correo,
+                    'clave'              => Hash::make($passwordPlano),
+                    'rol_corp'           => $userData->rol_corp,
+                    'avatar_predefinido' => 'avatar-lobo.png',
+                ]);
 
-            $usuariosGenerados[] = [
-                'id'       => $user->id,
-                'correo'   => $user->correo,
-                'password' => $passwordPlano,
-                'rol'      => $user->rol_corp,
-            ];
+                $usuariosGenerados[] = [
+                    'id'       => $user->id,
+                    'correo'   => $user->correo,
+                    'password' => $passwordPlano,
+                    'rol'      => $user->rol_corp,
+                ];
+            }
+
+            // Guardar el archivo con usuarios generados (solo la primera vez)
+            $this->guardarArchivoUsuarios($usuariosGenerados);
         }
 
-        // Crear BOTS (usando tu BotUsersSeeder)
+        /**
+         * 2) Asegurar BOTS (este seeder ya es idempotente)
+         */
         $this->call([
             BotUsersSeeder::class,
         ]);
 
-        // Guardar el archivo con usuarios generados (los humanos)
-        $this->guardarArchivoUsuarios($usuariosGenerados);
+        /**
+         * 3) Crear partidas de prueba solo si no hay ninguna
+         */
+        if (Partida::count() === 0) {
+            $creadoresPartidas = User::where('rol_corp', '!=', 'bot')
+                ->inRandomOrder()
+                ->take(4)
+                ->get();
 
-        // Crear partidas
-        $creadoresPartidas = User::where('rol_corp', '!=', 'bot')
-            ->inRandomOrder()
-            ->take(4)
-            ->get();
-
-        foreach ($creadoresPartidas as $usuario) {
-            Partida::factory()->create([
-                'id_creador_partida' => $usuario->id,
-            ]);
+            foreach ($creadoresPartidas as $usuario) {
+                Partida::factory()->create([
+                    'id_creador_partida' => $usuario->id,
+                ]);
+            }
         }
     }
 

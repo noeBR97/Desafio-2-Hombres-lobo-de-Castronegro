@@ -17,6 +17,7 @@ export type ContextoJugador = {
 
 type JugadorDatos = {
     id: number;
+    id_usuario: number | null;
     nick: string;
     rol: RolJugador;
     vivo: number;
@@ -29,7 +30,7 @@ export function calcularAparienciaJugador(
 ): AparienciaJugador {
     const { miId, miRol } = contexto;
 
-    const esPropio = miId !== null && jugador.id === miId;
+    const esPropio = miId !== null && jugador.id_usuario === miId;
     const estaVivo = jugador.vivo === 1;
     const soyLobo = miRol === 'lobo';
     const esAlcalde = jugador.es_alcalde === 1;
@@ -37,6 +38,13 @@ export function calcularAparienciaJugador(
     let backgroundImage: string | undefined;
     const clasesExtra: string[] = [];
     let colorNombre: string | undefined;
+
+    console.log('DEBUG IDs', {
+    miId,
+    jugadorId: jugador.id,
+    esPropio: miId !== null && jugador.id === miId,
+    jugadorNick: jugador.nick,
+    });
 
     if (esPropio) {
         const rol = miRol ?? jugador.rol;
