@@ -4,28 +4,72 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Partida;
-use App\Models\JugadorPartida;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        $usuarios = User::factory()->count(10)->create();
+        $usuariosGenerados = [];
 
-        $creadoresPartidas = $usuarios->random(4);
+        // Crear 10 usuarios con contraseña fija (o generada)
+        $usuarios = User::factory()->count(10)->make();
 
-        // se van a crear 4 partidas asociadas a un id de un usuario existente
+        foreach ($usuarios as $index => $userData) {
+
+            $passwordPlano = "password" . ($index + 1);
+
+            $user = User::create([
+                'nombre' => $userData->nombre,
+                'apellido1' => $userData->apellido1,
+                'apellido2' => $userData->apellido2,
+                'nick' => $userData->nick,
+                'correo' => $userData->correo,
+                'clave' => Hash::make($passwordPlano),
+                'rol_corp' => $userData->rol_corp,
+                'avatar_predefinido' => 'avatar-lobo.png',
+            ]);
+
+            $usuariosGenerados[] = [
+                'id' => $user->id,
+                'correo' => $user->correo,
+                'password' => $passwordPlano,
+                'rol' => $user->rol_corp,
+            ];
+        }
+
+        // Guardar el archivo con correos + contraseñas
+        $this->guardarArchivoUsuarios($usuariosGenerados);
+
+        // Crear partidas
+        $creadoresPartidas = User::all()->random(4);
+
         foreach ($creadoresPartidas as $usuario) {
             Partida::factory()->create([
                 'id_creador_partida' => $usuario->id,
             ]);
         }
+    }
+
+    private function guardarArchivoUsuarios($data)
+    {
+        $path = storage_path('app/usuarios_generados.txt');
+
+        $contenido = "=== Usuarios generados " . now() . " ===\n\n";
+
+        foreach ($data as $u) {
+            $contenido .= "ID: {$u['id']}\n";
+            $contenido .= "Correo: {$u['correo']}\n";
+            $contenido .= "Contraseña: {$u['password']}\n";
+            $contenido .= "Rol: {$u['rol']}\n";
+            $contenido .= "--------------------------------------\n";
+        }
+
+        File::put($path, $contenido);
     }
 }
