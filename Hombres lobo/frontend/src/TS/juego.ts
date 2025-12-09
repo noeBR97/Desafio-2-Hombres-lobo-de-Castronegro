@@ -115,6 +115,7 @@ echo.private(`game.${gameId}`)
 
     document.getElementById('mensajes')?.appendChild(nuevoMensaje);
     listaMensajes.scrollTop = listaMensajes.scrollHeight;
+
 })
     .listen('.CambioDeFase', (e: any) => {
         console.log("Cambio de fase recibido del servidor:", e.partida.fase_actual);
@@ -123,10 +124,12 @@ echo.private(`game.${gameId}`)
         
         iniciarTemporizadorVisual(); 
         actualizarFondoYVotos();
+        narradorDecir(`La fase ha cambiado a ${fase.toUpperCase()}`);
         cargarJuego();
     })
     .listen('.AlcaldeElegido', (e: any) => {
         console.log('Nuevo alcalde elegido:', e.jugador_id);
+        narradorDecir(`El jugador ${e.jugador_nick} ha sido elegido alcalde.`);
         cargarJuego();
     })
     .listen('.AlcaldeElegido', (e: any) => {
@@ -141,7 +144,14 @@ echo.private(`game.${gameId}`)
     })
     .listen('.PartidaActualizada', (e:any) => {
         renderizarJugadores(e.jugadores)
+        if (e.jugador_muerto) {
+            narradorDecir(`El jugador ${e.jugador_muerto.nick} ha muerto.`);
+        }
+    })
+    .listen('.NarradorHabla', (e: any) => {
+        narradorDecir(e.mensaje);
     });
+
     echo.private(`lobby.${gameId}`)
         .listen('.JugadorUnido', (e: any) => {
             console.log("Jugador nuevo en la partida:", e.user);
@@ -404,6 +414,18 @@ function actualizarFondoYVotos() {
         actualizarEstilosVotacion();
     }
 }
+
+function narradorDecir(texto: string) {
+    if (!listaMensajes) return;
+
+    const li = document.createElement('li');
+    li.classList.add('mensaje-narrador');
+    li.textContent = `Narrador: ${texto}`;
+
+    listaMensajes.appendChild(li);
+    listaMensajes.scrollTop = listaMensajes.scrollHeight;
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!partidaID || !token) return;

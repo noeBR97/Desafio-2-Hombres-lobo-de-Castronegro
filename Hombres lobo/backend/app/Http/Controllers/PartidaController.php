@@ -19,6 +19,8 @@ use App\Models\VotoPartida;
 use Illuminate\Support\Facades\DB; 
 use App\Events\CambioDeFase;
 use App\Services\BotService;
+use App\Events\NarradorHabla;
+use App\Models\User;
 
 class PartidaController extends Controller
 {
@@ -347,6 +349,22 @@ public function votar(Request $request)
             'tipo_fase'   => $partida->fase_actual,
         ]
     );
+
+    $nickObjetivo = 'Desconocido';
+
+    if ($jugadorObjetivo->id_usuario) {
+        $targetUser = User::find($jugadorObjetivo->id_usuario);
+        $nickObjetivo = $targetUser ? $targetUser->nick : 'Desconocido';
+    } else {
+        $nickObjetivo = $jugadorObjetivo->nick_bot ?? 'Bot';
+    }
+
+    $miNick = Auth::user()->nick;
+
+    broadcast(new NarradorHabla(
+        $partidaId, 
+        "{$miNick} ha votado a {$nickObjetivo}."
+    ));
 
     return response()->json(['message' => 'Voto registrado']);
 }

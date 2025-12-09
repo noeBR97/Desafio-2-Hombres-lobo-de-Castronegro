@@ -22,6 +22,7 @@ body {
     transition: background-image 2s ease-in-out;
     background-size: cover;
     background-position: center;
+    background-attachment: fixed;
 }
 
 .titulo-juego {
@@ -228,4 +229,20 @@ body {
     border: 3px solid red; 
     box-shadow: 0 0 20px red;
     transform: scale(1.1);
+}
+
+.mensaje-narrador {
+    align-self: center;
+    background: rgba(193, 163, 94, 0.20);
+    border-left: 4px solid #C1A35E;
+    color: #C1A35E;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    padding: 8px 12px;
+    margin: 10px 0;
+    border-radius: 6px;
+    text-shadow: 0 0 6px #000;
+    width: 80%;
+    max-width: 90%;
+    text-align: center;
 }
