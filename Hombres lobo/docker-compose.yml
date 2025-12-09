@@ -11,7 +11,7 @@ services:
       - db
     env_file:
       - ./backend/.env
-    command: sh -c "composer install && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"
+    command: sh -c "composer install && php artisan migrate:fresh --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=8000"
 
   frontend:
     build: ./frontend
@@ -70,6 +70,7 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+      - ./docker/db/init:/docker-entrypoint-initdb.d
 
   adminer:
     image: adminer:latest

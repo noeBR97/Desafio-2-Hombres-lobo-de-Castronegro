@@ -6,11 +6,13 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PartidaController;
-use Illuminate\Support\Facades\Broadcast; 
+use Illuminate\Support\Facades\Broadcast;
 use App\Models\JugadorPartida;
 use App\Models\VotoPartida;
 use Carbon\Carbon;
 use App\Http\Controllers\ChatController;
+
+//RUTAS PÚBLICAS
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -23,35 +25,56 @@ Route::get('/ping', function () {
     ]);
 });
 
+Route::post('/login', [AuthController::class, 'login']);
 Route::post('/usuarios/registrar', [AuthController::class, 'registrar']);
 Route::post('/validar-username', [UsuarioController::class,'validarUserName']);
 Route::post('/validar-email', [UsuarioController::class,'validarEmail']);
-
-// Rutas públicas
-Route::post('/login',    [AuthController::class, 'login']);
 Route::get('usuarios/avatares', [UsuarioController::class, 'listaAvatares']);
 
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
+
 // Rutas protegidas
 Route::middleware('auth:sanctum')->group(function () {
+    //usuario autenticado
     Route::get('/me',     [AuthController::class, 'me']);
     Route::post('/logout',[AuthController::class, 'logout']);
-    Route::get('/usuarios', [AdminController::class, 'get_all']);
-    Route::get('/usuarios/{user}', [AdminController::class, 'get_one']);
-    Route::get('/usuarios-buscar', [AdminController::class, 'buscar']);
-    Route::put('/usuarios/{user}', [AdminController::class, 'update']);
-    Route::delete('/usuarios/{user}', [AdminController::class, 'delete']);
-    Route::get('/partidas', [PartidaController::class, 'index']);
-    Route::post('/partidas', [PartidaController::class, 'store']);
-    Route::get('/partidas/{id}', [PartidaController::class, 'show']);
-    Route::post('/partidas/{id}/unirse', [PartidaController::class, 'unirse']);
-    Route::post('/partidas/{id}/salir', [PartidaController::class, 'salir']);
-    Route::post('/chat/send-private', [ChatController::class, 'sendPrivate']);
-    Route::post('/partidas/{id}/iniciar', [PartidaController::class, 'iniciar']);
-    Route::get('/partidas/{id}/estado', [PartidaController::class, 'estado']);
-    Route::post('/usuarios/actualizar-imagen', [UsuarioController::class, 'actualizarImagenPerfil']);
-    Route::post('usuarios/elegir-avatar', [UsuarioController::class, 'elegirAvatar']);
+
+    //rutas solo de admin
+    Route::prefix('admin')
+        ->middleware('abilities:admin')
+        ->group(function() {
+            Route::prefix('usuarios')->group(function() {
+                Route::get('/', [AdminController::class, 'get_all']);
+                Route::get('/{user}', [AdminController::class, 'get_one']);
+                Route::get('/buscar', [AdminController::class, 'buscar']);
+                Route::put('/{user}', [AdminController::class, 'update']);
+                Route::delete('/{user}', [AdminController::class, 'delete']);
+            });
+        });
+        
+    Route::prefix('usuarios')->group(function() {
+        Route::post('/actualizar-imagen', [UsuarioController::class, 'actualizarImagenPerfil']);
+        Route::post('/elegir-avatar', [UsuarioController::class, 'elegirAvatar']);
+    });
+
+    //actualizar usuario propio
     Route::put('/usuario/update', [UsuarioController::class, 'update']);
+
+    //grupo partidas
+    Route::prefix('partidas')->group(function() {
+        Route::get('/', [PartidaController::class, 'index']);
+        Route::post('/', [PartidaController::class, 'store']);
+        Route::get('/{id}', [PartidaController::class, 'show']);
+        Route::post('/{id}/unirse', [PartidaController::class, 'unirse']);
+        Route::post('/{id}/salir', [PartidaController::class, 'salir']);
+        Route::post('/{id}/iniciar', [PartidaController::class, 'iniciar']);
+        Route::get('/{id}/estado', [PartidaController::class, 'estado']);
+        Route::post('/{id}/siguiente-fase', [PartidaController::class, 'siguienteFase']);
+    });
+
+    //votaciones
     Route::post('/partida/votar', [PartidaController::class, 'votar']);
-    Route::post('/partidas/{id}/siguiente-fase', [PartidaController::class, 'siguienteFase']);
+
+    //chat
+    Route::post('/chat/send-private', [ChatController::class, 'sendPrivate']);
 });
