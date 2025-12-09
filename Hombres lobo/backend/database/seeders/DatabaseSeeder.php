@@ -1,5 +1,4 @@
 <?php
-
 namespace Database\Seeders;
 
 use App\Models\User;
@@ -17,7 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $usuariosGenerados = [];
 
-        // Crear 10 usuarios con contraseña fija (o generada)
+        // Crear 10 usuarios "normales" aleatorios
         $usuarios = User::factory()->count(10)->make();
 
         foreach ($usuarios as $index => $userData) {
@@ -25,29 +24,37 @@ class DatabaseSeeder extends Seeder
             $passwordPlano = "password" . ($index + 1);
 
             $user = User::create([
-                'nombre' => $userData->nombre,
-                'apellido1' => $userData->apellido1,
-                'apellido2' => $userData->apellido2,
-                'nick' => $userData->nick,
-                'correo' => $userData->correo,
-                'clave' => Hash::make($passwordPlano),
-                'rol_corp' => $userData->rol_corp,
-                'avatar_predefinido' => 'avatar-lobo.png',
+                'nombre'            => $userData->nombre,
+                'apellido1'         => $userData->apellido1,
+                'apellido2'         => $userData->apellido2,
+                'nick'              => $userData->nick,
+                'correo'            => $userData->correo,
+                'clave'             => Hash::make($passwordPlano),
+                'rol_corp'          => $userData->rol_corp,
+                'avatar_predefinido'=> 'avatar-lobo.png',
             ]);
 
             $usuariosGenerados[] = [
-                'id' => $user->id,
-                'correo' => $user->correo,
+                'id'       => $user->id,
+                'correo'   => $user->correo,
                 'password' => $passwordPlano,
-                'rol' => $user->rol_corp,
+                'rol'      => $user->rol_corp,
             ];
         }
 
-        // Guardar el archivo con correos + contraseñas
+        // Crear BOTS (usando tu BotUsersSeeder)
+        $this->call([
+            BotUsersSeeder::class,
+        ]);
+
+        // Guardar el archivo con usuarios generados (los humanos)
         $this->guardarArchivoUsuarios($usuariosGenerados);
 
         // Crear partidas
-        $creadoresPartidas = User::all()->random(4);
+        $creadoresPartidas = User::where('rol_corp', '!=', 'bot')
+            ->inRandomOrder()
+            ->take(4)
+            ->get();
 
         foreach ($creadoresPartidas as $usuario) {
             Partida::factory()->create([
