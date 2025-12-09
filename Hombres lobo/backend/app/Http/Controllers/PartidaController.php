@@ -434,10 +434,28 @@ private function rellenarConBots(int $idPartida): void
         $totalActual++;
     }
 
-    $partida->numero_jugadores = $totalActual;
-    $partida->save();
+        $partida->numero_jugadores = $totalActual;
+        $partida->save();
 
-    broadcast(new PartidaActualizada($partida->id))->toOthers();
+        $partida->load('jugadores');
+
+        $jugadores = $partida->jugadores->map(function ($j) {
+            return [
+                'id'         => $j->pivot->id,
+                'id_usuario' => $j->id,
+                'nick'       => $j->nick,
+                'rol'        => $j->pivot->rol_partida,
+                'vivo'       => (int) $j->pivot->vivo,
+                'es_alcalde' => (int) $j->pivot->es_alcalde,
+                'es_bot'     => (int) $j->pivot->es_bot,
+            ];
+        })->toArray();
+
+        broadcast(new PartidaActualizada(
+            $partida->id,
+            $jugadores,
+            null
+        ))->toOthers();
 }
 
 private function comprobarFinDePartida($partida)
@@ -542,10 +560,12 @@ public function siguienteFase(Request $request, $id)
             $botService->generarVotosFinalFaseNoche($partida);
         }
 
-        $votos = VotoPartida::where('id_partida', $partida->id)
+                $votos = VotoPartida::where('id_partida', $partida->id)
             ->where('tipo_fase', $faseQueTermina)
             ->where('ronda', $partida->ronda_actual)
             ->get();
+
+        $jugadorMuerto = null;
 
         if ($votos->count() > 0) {
             $conteo = [];
@@ -584,6 +604,8 @@ public function siguienteFase(Request $request, $id)
                 if ($jugadorObjetivo && $jugadorObjetivo->vivo) {
                     $jugadorObjetivo->vivo = false;
                     $jugadorObjetivo->save();
+
+                    $jugadorMuerto = $jugadorObjetivo;
                 }
             }
 
@@ -604,6 +626,50 @@ public function siguienteFase(Request $request, $id)
 
         $partida->save();
         $partida->load('jugadores');
+
+        $jugadores = $partida->jugadores->map(function ($j) {
+            return [
+                'id'         => $j->pivot->id,
+                'id_usuario' => $j->id,
+                'nick'       => $j->nick,
+                'rol'        => $j->pivot->rol_partida,
+                'vivo'       => (int) $j->pivot->vivo,
+                'es_alcalde' => (int) $j->pivot->es_alcalde,
+                'es_bot'     => (int) $j->pivot->es_bot,
+            ];
+        })->toArray();
+
+        $jugadorMuertoPayload = null;
+        if ($jugadorMuerto) {
+            $nick = 'Desconocido';
+
+            if ($jugadorMuerto->id_usuario) {
+                $userMuerto = User::find($jugadorMuerto->id_usuario);
+                $nick = $userMuerto ? $userMuerto->nick : 'Humano';
+            } else {
+                $nick = $jugadorMuerto->nick_bot ?? 'Bot';
+            }
+
+            $jugadorMuertoPayload = [
+                'id'         => $jugadorMuerto->id,
+                'id_usuario' => $jugadorMuerto->id_usuario,
+                'nick'       => $nick,
+                'rol'        => $jugadorMuerto->rol_partida,
+                'vivo'       => (int) $jugadorMuerto->vivo,
+                'es_alcalde' => (int) $jugadorMuerto->es_alcalde,
+                'es_bot'     => (int) $jugadorMuerto->es_bot,
+            ];
+        }
+
+        try {
+            broadcast(new PartidaActualizada(
+                $partida->id,
+                $jugadores,
+                $jugadorMuertoPayload
+            ))->toOthers();
+        } catch (\Throwable $e) {
+            \Log::error('Error al emitir PartidaActualizada en siguienteFase: '.$e->getMessage());
+        }
 
         $botService = app(\App\Services\BotService::class);
 

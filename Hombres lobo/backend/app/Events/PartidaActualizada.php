@@ -2,9 +2,7 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -14,25 +12,34 @@ class PartidaActualizada implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $idPartida;
+    public int $partidaId;
+    public array $jugadores;
+    public ?array $jugador_muerto;
 
-    /**
-     * Create a new event instance.
-     */
-    public function __construct($idPartida)
+    public function __construct(int $partidaId, array $jugadores, ?array $jugadorMuerto = null)
     {
-        $this->idPartida = $idPartida;
+        $this->partidaId      = $partidaId;
+        $this->jugadores      = $jugadores;
+        $this->jugador_muerto = $jugadorMuerto;
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('partida.' . $this->idPartida),
+            new PrivateChannel('game.' . $this->partidaId),
+        ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'PartidaActualizada';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'jugadores'      => $this->jugadores,
+            'jugador_muerto' => $this->jugador_muerto,
         ];
     }
 }
