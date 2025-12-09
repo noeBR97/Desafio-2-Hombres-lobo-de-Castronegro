@@ -460,6 +460,7 @@ private function rellenarConBots(int $idPartida): void
 
 private function comprobarFinDePartida($partida)
 {
+    \Log::debug('Entrando en comprobarFinDePartida', ['partida_id' => $partida->id]);
     $jugadoresVivos = JugadorPartida::where('id_partida', $partida->id)
         ->where('vivo', true)
         ->get();
@@ -560,7 +561,7 @@ public function siguienteFase(Request $request, $id)
             $botService->generarVotosFinalFaseNoche($partida);
         }
 
-                $votos = VotoPartida::where('id_partida', $partida->id)
+        $votos = VotoPartida::where('id_partida', $partida->id)
             ->where('tipo_fase', $faseQueTermina)
             ->where('ronda', $partida->ronda_actual)
             ->get();
@@ -613,6 +614,13 @@ public function siguienteFase(Request $request, $id)
                 ->where('tipo_fase', $faseQueTermina)
                 ->where('ronda', $partida->ronda_actual)
                 ->delete();
+        }
+        if ($this->comprobarFinDePartida($partida)) {
+            return response()->json([
+                'mensaje' => 'La partida ha finalizado',
+                'fase'    => $partida->fase_actual,
+                'ronda'   => $partida->ronda_actual,
+            ]);
         }
 
         $faseAnterior = $partida->fase_actual;
@@ -683,13 +691,13 @@ public function siguienteFase(Request $request, $id)
             \Log::error('Error en BotService al cambiar de fase: '.$e->getMessage());
         }
 
-            try {
-                broadcast(new CambioDeFase($partida))->toOthers();
-            } catch (\Throwable $e) {
-                \Log::error('Error al emitir CambioDeFase: '.$e->getMessage(), [
-                    'trace' => $e->getTraceAsString(),
-                ]);
-            }
+        try {
+            broadcast(new CambioDeFase($partida))->toOthers();
+        } catch (\Throwable $e) {
+            \Log::error('Error al emitir CambioDeFase: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
 
         return response()->json([
             'mensaje' => 'Fase actualizada correctamente',
