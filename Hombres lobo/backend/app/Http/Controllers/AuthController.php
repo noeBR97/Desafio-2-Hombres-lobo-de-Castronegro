@@ -31,7 +31,8 @@ class AuthController extends Controller
             'nick'      => $datos['nick']
             ]);
 
-            $token = $usuario->createToken('token_registro')->plainTextToken;
+            $abilities = $usuario->rol_corp === 'admin' ? ['admin'] : ['user'];
+            $token = $usuario->createToken('token_registro', $abilities)->plainTextToken;
 
             return response()->json([
                 'usuario' => $this->mapUsuario($usuario),
@@ -57,7 +58,6 @@ class AuthController extends Controller
 
     // Buscamos al usuario por correo
     $usuario = User::where('correo', $datos['correo'])->first();
-    $token = $usuario->createToken('token-de-login')->plainTextToken;
 
     // Comprobamos que exista y que la clave coincida
     if (!$usuario || !Hash::check($datos['clave'], $usuario->clave)) {
@@ -66,6 +66,9 @@ class AuthController extends Controller
             'message' => 'Correo o contraseña incorrectos',
         ], 401);
     }
+
+    $abilities = $usuario->rol_corp === 'admin' ? ['admin'] : ['user'];
+    $token = $usuario->createToken('token-de-login', $abilities)->plainTextToken;
 
     return response()->json([
         'ok'    => true,

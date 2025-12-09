@@ -109,6 +109,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .avatar-menu button {
     width: 100%;
+    border-radius: 5px;
     background: none;
     padding: 8px 12px;
     border: none;
@@ -156,51 +157,6 @@ h1, h2, h3, h4, h5, h6 {
 .estadisticas li {
     padding: 5px 0;
     font-size: 1.1em;
-}
-
-.estadisticas-rol {
-    width: 100%;
-    margin-top: 20px;
-}
-
-.estadisticas-rol h3 {
-    margin-bottom: 10px;
-    font-size: 1.3em;
-}
-
-.estadisticas-rol select {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 10px;
-    font-family: 'Cinzel', serif;
-    border-radius: 4px;
-    border: 1px solid var(--color-border);
-    background-color: var(--color-input-bg);
-    color: var(--color-input-text);
-}
-
-.estadisticas-rol select:hover {
-    border-color: var(--color-text-muted);
-}
-
-.estadisticas-rol select:focus {
-    outline: none;
-    border-color: var(--color-text-muted);
-    box-shadow: 0 0 5px var(--color-text-muted);
-}
-
-.estadisticas-rol select option {
-    background-color: var(--color-button-secondary-hover);
-    color: var(--color-text-main);
-}
-
-#estadisticas-rol-list {
-    display: none;
-    list-style: none;
-    padding: 15px;
-    margin: 0;
-    border: 1px solid var(--color-border);
-    background-color: rgba(0, 0, 0, 0.2);
 }
 
 .partidas-columna {
@@ -258,6 +214,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-unirse {
     padding: 10px 18px; 
+    border-radius: 5px;
     border: 1px solid var(--color-text-muted); 
     background-color: var(--color-button-secondary-bg); 
     color: var(--color-text-main);
@@ -274,6 +231,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-crear {
     align-self: center;
+    border-radius: 5px;
     padding: 15px 30px; 
     font-size: 1em;
     border: 2px solid var(--color-text-muted); 
@@ -300,6 +258,7 @@ footer {
     color: var(--color-text-main);
     font-size: 0.9em;
     font-family: 'Cinzel', serif;
+    margin-top: 5%;
 }
 
 footer a {
@@ -352,6 +311,7 @@ footer a:hover {
 
 .btn-cerrar-sesion {
   padding: 15px 30px;
+  border-radius: 5px;
   background-color: transparent;
   border: 2px solid var(--color-text-muted);
   color: var(--color-text-muted);
@@ -437,6 +397,7 @@ footer a:hover {
 
 .modal-botones {
     margin-top: 1.5rem;
+    border-radius: 5px;
     display: flex;
     justify-content: flex-end; 
     gap: 1rem;
@@ -452,6 +413,7 @@ footer a:hover {
     font-family: 'Cinzel', serif;
     font-weight: 700;
     transition: background-color 0.3s ease;
+    border-radius: 5px;
 }
 
 .modal-botones .btn-confirmar:hover {
@@ -467,6 +429,7 @@ footer a:hover {
     font-family: 'Cinzel', serif;
     font-size: 1em;
     transition: all 0.3s ease;
+    border-radius: 5px;
 }
 
 .modal-botones .btn-cancelar:hover {
@@ -604,4 +567,30 @@ footer a:hover {
 
 .texto-reglas ul {
     padding-left: 20px;
+}
+
+/* implementacion posterior -> input de numero de jugadores */
+#numero-jugadores-input {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--color-input-bg);
+    color: var(--color-input-text);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 1.1em;
+    box-sizing: border-box;
+    font-family: 'Cinzel', serif;
+    margin-bottom: 0.5rem;
+}
+
+#mensaje-numero-jugadores {
+    display: block;
+    font-size: 0.9em;
+    font-family: 'Cinzel', serif;
+    color: var(--color-text-muted);
+    transition: color 0.3s ease;
+}
+
+#mensaje-numero-jugadores.error {
+    color: #FF5A5A; /* rojo suave para error */
 }

@@ -44,27 +44,6 @@
                 </ul>
             </div>
 
-            <div class="estadisticas-rol">
-                <h3>Estadísticas por rol:</h3>
-                <label for="rol-select">Selecciona un rol:</label>
-                <select id="rol-select">
-                    <option value="">----</option>
-                    <option value="aldeano">Aldeano</option>
-                    <option value="hombre-lobo">Hombre Lobo</option>
-                    <option value="vidente">Vidente</option>
-                    <option value="protector">Protector</option>
-                    <option value="bruja">Bruja</option>
-                    <option value="nina">Niña</option>
-                    <option value="cupido">Cupido</option>
-                </select>
-
-                <ul id="estadisticas-rol-list">
-                    <li>Partidas jugadas: </li>
-                    <li>Victorias: </li>
-                    <li>Derrotas: </li>
-                </ul>
-            </div>
-
         </section>
 
         <section class="partidas-columna">
@@ -99,11 +78,14 @@
     <div id="modal-crear-partida" class="modal-overlay" style="display: none;">
         <div class="modal-contenido">
             <h2>Crear Nueva Partida</h2>
-            <p>Elige un nombre para tu sala de espera.</p>
             
             <form id="form-crear-partida">
                 <label for="nombre-partida-input">Nombre de la Partida:</label>
                 <input type="text" id="nombre-partida-input" required maxlength="100">
+
+                <label for="total-jugadores">Total de jugadores: </label>
+                <input type="text" id="total-jugadores" placeholder="15-30" required>
+                <span id="mensaje-numero-jugadores"></span>
                 
                 <div class="modal-botones">
                     <button type="button" class="btn-cancelar" id="btn-cancelar-crear">Cancelar</button>

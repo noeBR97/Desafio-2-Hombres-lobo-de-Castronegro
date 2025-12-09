@@ -3,27 +3,70 @@
 namespace App\Http\Controllers;
 
 use App\Events\GameMessageSent;
-use Illuminate\Http\Request;
+use App\Models\JugadorPartida;
 use App\Models\Mensaje;
+use App\Models\Partida;
+use Illuminate\Http\Request;
+use App\Services\BotService;
 
 class ChatController extends Controller
 {
-    public function sendPrivate(Request $request)
-    {
-        $request->validate([
-            'partida_id' => 'required|integer|exists:partidas,id',
-            'contenido'  => 'required|string|max:1000',
-        ]);
+    public function sendPrivate(Request $request, BotService $botService)
+{
+    $request->validate([
+        'partida_id' => 'required|integer|exists:partidas,id',
+        'contenido'  => 'required|string|max:1000',
+    ]);
 
-        $mensaje = Mensaje::create([
-            'partida_id' => $request->input('partida_id'),
-            'usuario_id' => $request->user()->id,
-            'contenido'  => $request->input('contenido'),
-        ]);
+    $user = $request->user();
+    $partidaId = $request->input('partida_id');
 
-        event(new GameMessageSent($mensaje));
+    $partida = Partida::findOrFail($partidaId);
 
-        return response()->json(['status' => 'ok', 'mensaje' => $mensaje], 201);
+    $jugador = JugadorPartida::where('id_partida', $partidaId)
+        ->where('id_usuario', $user->id)
+        ->first();
+
+    if (!$jugador || !$jugador->vivo) {
+        return response()->json([
+            'error' => 'Estás muerto o no estás en esta partida.'
+        ], 403);
     }
-}
 
+    $rol = strtolower(trim($jugador->rol_partida ?? ''));
+    $soloLobos = false;
+
+    if ($partida->fase_actual === 'noche') {
+        if ($rol === 'lobo') {
+            $soloLobos = true;
+        } elseif ($rol === 'nina') {
+            return response()->json([
+                'error' => 'La niña no puede hablar por la noche.'
+            ], 403);
+        } else {
+            return response()->json([
+                'error' => 'Solo los lobos pueden hablar por la noche.'
+            ], 403);
+        }
+    }
+
+    $mensaje = Mensaje::create([
+        'partida_id' => $partidaId,
+        'usuario_id' => $user->id,
+        'contenido'  => $request->input('contenido'),
+    ]);
+
+    event(new GameMessageSent($mensaje, $soloLobos));
+
+    if ($partida->fase_actual === 'dia' && !$jugador->es_bot) {
+        $botService->reaccionarAlMensajeDia($partida, $mensaje);
+    } elseif ($partida->fase_actual === 'noche' && !$jugador->es_bot && $rol === 'lobo') {
+        $botService->reaccionarMensajeNocheLobos($partida, $mensaje);
+    }
+
+    return response()->json([
+        'status'  => 'ok',
+        'mensaje' => $mensaje
+    ], 201);
+}
+}

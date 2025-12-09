@@ -18,7 +18,11 @@
 }
 
 body {
-    background-image: url(../img/DIA.png);
+    background-image: url(../img/NOCHE.png);
+    transition: background-image 2s ease-in-out;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
 }
 
 .titulo-juego {
@@ -37,34 +41,56 @@ body {
 }
 
 .juego-jugadores-chat {
-    flex: 3; 
+    flex: 3;
     display: grid;
-    grid-template-columns: repeat(5, 1fr); 
-    grid-template-rows: repeat(6, 1fr);
     gap: 10px;
     height: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 160px));
+    grid-auto-rows: minmax(auto);
+    justify-content: center;
+    align-content: flex-start;
 }
 
 .jugador {
-    background: var(--color-container-bg);
-    border: 1px solid var(--color-border);
+    background-color: transparent;
     border-radius: 12px;
-    color: var(--color-text-main);
     text-align: center;
     font-family: 'Crimson Text', serif;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
-    font-size: 14px;
-    transition: 0.3s ease;
+    padding-bottom: 6px;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    background-image: url(../img/CARTA-BACK.jpg);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: #ffffff;
+    font-size: clamp(0.7rem, 1.2vw, 1.4rem);
+    font-weight: 700;
+    text-shadow:
+        0 0 4px #000,
+        0 0 8px #000;
     cursor: pointer;
-    background-image: url(../img/CARTA-BACK.png);;
-    background-size: cover;
+    transition: transform 0.3s ease, border-color 0.3s ease;
 }
 
 .jugador:hover {
     transform: scale(1.05);
     border-color: var(--color-text-muted);
+}
+
+.jugador.alcalde {
+    border: 3px solid #2ecc71;
+}
+
+.jugador.alcalde span {
+    color: #2ecc71;
+}
+
+.jugador.muerto span {
+    color: #7f8c8d;
 }
 
 .container-chat {
@@ -79,47 +105,12 @@ body {
     overflow: hidden;
 }
 
-.div1 { grid-column: 1; grid-row: 1; }
-.div2 { grid-column: 2; grid-row: 1; }
-.div3 { grid-column: 3; grid-row: 1; }
-.div4 { grid-column: 4; grid-row: 1; }
-.div5 { grid-column: 5; grid-row: 1; }
-
-.div6 { grid-column: 1; grid-row: 2; }
-.div7 { grid-column: 2; grid-row: 2; }
-.div8 { grid-column: 3; grid-row: 2; }
-.div9  { grid-column: 4; grid-row: 2; }
-.div10 { grid-column: 5; grid-row: 2; }
-
-.div11 { grid-column: 1; grid-row: 3; }
-.div12 { grid-column: 2; grid-row: 3; }
-.div13 { grid-column: 3; grid-row: 3; }
-.div14 { grid-column: 4; grid-row: 3; }
-.div15 { grid-column: 5; grid-row: 3; }
-
-.div16 { grid-column: 1; grid-row: 4; }
-.div17 { grid-column: 2; grid-row: 4; }
-.div18 { grid-column: 3; grid-row: 4; }
-.div19 { grid-column: 4; grid-row: 4; }
-.div20 { grid-column: 5; grid-row: 4; }
-
-.div21 { grid-column: 1; grid-row: 5; }
-.div22 { grid-column: 2; grid-row: 5; }
-.div23 { grid-column: 3; grid-row: 5; }
-.div24 { grid-column: 4; grid-row: 5; }
-.div25 { grid-column: 5; grid-row: 5; }
-
-.div26 { grid-column: 1; grid-row: 6; }
-.div27 { grid-column: 2; grid-row: 6; }
-.div28 { grid-column: 3; grid-row: 6; }
-.div29 { grid-column: 4; grid-row: 6; }
-.div30 { grid-column: 5; grid-row: 6; }
-
 @media (max-width: 900px) {
     .juego {
         flex-direction: column;
         height: auto; 
         overflow-y: auto; 
+        margin-top: 50px; 
     }
 
     .juego-jugadores-chat {
@@ -130,8 +121,37 @@ body {
         padding: 10px;
     }
 
+    .btn-abandonar {
+        top: 10px;
+        left: 10px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        background-color: rgba(138, 3, 3, 0.95); 
+        width: auto;
+    }
+
+    .titulo-juego {
+        font-size: 1.5rem;
+        margin-top: 50px; 
+    }
+
+    .modal-contenido {
+        width: 90%;
+        padding: 20px;
+    }
 }
-/* ESTILOS CHAT */
+
+@media (max-width: 480px) {
+    .juego-jugadores-chat {
+        grid-template-columns: repeat(3, 1fr); 
+    }
+
+    .btn-abandonar {
+        font-size: 0.75rem;
+        padding: 5px 10px;
+    }
+}
+
 .mensajes {
     flex: 1;
     overflow-y: auto;
@@ -188,6 +208,7 @@ body {
     gap: 10px;
     margin-top: 10px;
     padding-top: 5px;
+    border-radius: 5px;
     border-top: 1px solid var(--color-border);
 }
 
@@ -220,4 +241,119 @@ body {
 
 .enviar-mensaje:hover {
     background-color: var(--color-button-bg-hover);
+}
+
+.contador-fase {
+    margin-left: 80%;
+    font-family: 'Cinzel', serif;
+    color: #E0E0E0;
+    font-size: 22px;
+    margin-top: -10px;
+}
+
+.jugador:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+}
+
+.jugador.votado {
+    border: 3px solid red; 
+    box-shadow: 0 0 20px red;
+    transform: scale(1.1);
+}
+
+.mensaje-narrador {
+    align-self: center;
+    background: rgba(193, 163, 94, 0.20);
+    border-left: 4px solid #C1A35E;
+    color: #C1A35E;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    padding: 8px 12px;
+    margin: 10px 0;
+    border-radius: 6px;
+    text-shadow: 0 0 6px #000;
+    width: 80%;
+    max-width: 90%;
+    text-align: center;
+}
+
+.modal-resultado {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+}
+
+.modal-resultado.activo {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-resultado.oculto {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-contenido {
+    background: #222;
+    color: white;
+    padding: 30px;
+    width: 450px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    animation: aparecer .25s ease;
+}
+
+@keyframes aparecer {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.btn-salir {
+    margin-top: 20px;
+    padding: 10px 25px;
+    background: #d9534f;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-salir:hover {
+    background: #c9302c;
+}
+
+.btn-abandonar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    background-color: rgba(138, 3, 3, 0.8); 
+    color: #E0E0E0;
+    border: 1px solid var(--color-text-muted);
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    z-index: 100; 
+    transition: all 0.3s ease;
+}
+
+.btn-abandonar:hover {
+    background-color: #d9534f;
+    box-shadow: 0 0 10px rgba(217, 83, 79, 0.5);
+    transform: scale(1.05);
 }

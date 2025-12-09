@@ -42,12 +42,12 @@ function conectarWebSockets(gameId: string, token: string) {
     const echo = new Echo({
         broadcaster: 'reverb',
         key: 'wapw1chslaoar5p0jt4i', 
-        wsHost: 'localhost',         
+        wsHost: window.location.hostname,        
         wsPort: 8085,                
         wssPort: 8085,
         forceTLS: false,
         enabledTransports: ['ws', 'wss'],
-        authEndpoint: 'http://localhost:8000/api/broadcasting/auth',
+        authEndpoint: `http://${window.location.hostname}:8000/api/broadcasting/auth`,
         auth: {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -187,10 +187,28 @@ function controlBotones() {
             if (!gameId || !token) return;
 
             try {
-                await api.post(`/api/partidas/${gameId}/iniciar`, {}, {
-                     headers: { Authorization: `Bearer ${token}` }
+                const resp = await api.post(`/api/partidas/${gameId}/iniciar`, {}, {
+                    headers: { 
+                        Authorization: `Bearer ${token}`,
+                        Accept: 'application/json'
+                    }
                 });
-                
+
+                console.log('Partida iniciada (POST):', resp.data);
+
+                const jugadores = resp.data.jugadores;
+
+                const userJson = sessionStorage.getItem('user');
+                if (userJson && Array.isArray(jugadores)) {
+                    const user = JSON.parse(userJson);
+                    const yo = jugadores.find((j: any) => j.id === user.id);
+
+                    if (yo) {
+                        sessionStorage.setItem('mi_rol', yo.rol);
+                    }
+                }
+
+
             } catch (error) {
                 console.error("Error al iniciar:", error);
                 alert("No se pudo iniciar la partida.");
