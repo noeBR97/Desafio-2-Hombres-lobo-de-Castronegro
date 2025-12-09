@@ -354,9 +354,12 @@ public function votar(Request $request)
 
     $miNick = Auth::user()->nick;
 
+    $soloLobos = $partida->fase_actual === 'noche';
+
     broadcast(new NarradorHabla(
-        $partidaId, 
-        "{$miNick} ha votado a {$nickObjetivo}."
+        $partidaId,
+        "{$miNick} ha votado a {$nickObjetivo}.",
+        $soloLobos
     ));
 
     return response()->json(['message' => 'Voto registrado']);

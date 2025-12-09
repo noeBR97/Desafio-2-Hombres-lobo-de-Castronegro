@@ -147,6 +147,15 @@ echo.private(`game.${gameId}`)
         }
     })
     .listen('.NarradorHabla', (e: any) => {
+        if (e.solo_lobos) {
+            const contexto = obtenerContextoJugador();
+            const miRol = (contexto.miRol || '').toLowerCase().trim();
+            
+            if (miRol !== 'lobo' && miRol !== 'nina') {
+                return;
+            }
+        }
+        
         narradorDecir(e.mensaje);
     })
     .listen('.fin.partida', (e: any) => {
@@ -156,6 +165,18 @@ echo.private(`game.${gameId}`)
             mensaje: e.mensaje,
             ganadores: e.ganadores
         });
+    });
+
+    echo.private(`narrador.game.${gameId}`)
+    .listen('.NarradorHabla', (e: any) => {
+        if (e.solo_lobos) {
+            const contexto = obtenerContextoJugador();
+            const miRol = (contexto.miRol || '').toLowerCase().trim();
+            if (miRol !== 'lobo' && miRol !== 'nina') {
+                return;
+            }
+        }
+        narradorDecir(e.mensaje);
     });
 
     echo.private(`lobby.${gameId}`)
