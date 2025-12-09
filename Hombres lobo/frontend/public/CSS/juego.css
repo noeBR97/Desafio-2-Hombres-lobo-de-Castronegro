@@ -246,3 +246,60 @@ body {
     max-width: 90%;
     text-align: center;
 }
+
+.modal-resultado {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+}
+
+.modal-resultado.activo {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-resultado.oculto {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-contenido {
+    background: #222;
+    color: white;
+    padding: 30px;
+    width: 450px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    animation: aparecer .25s ease;
+}
+
+@keyframes aparecer {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.btn-salir {
+    margin-top: 20px;
+    padding: 10px 25px;
+    background: #d9534f;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-salir:hover {
+    background: #c9302c;
+}

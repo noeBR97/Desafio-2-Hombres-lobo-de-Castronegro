@@ -132,10 +132,6 @@ echo.private(`game.${gameId}`)
         narradorDecir(`El jugador ${e.jugador_nick} ha sido elegido alcalde.`);
         cargarJuego();
     })
-    .listen('.AlcaldeElegido', (e: any) => {
-            console.log('Nuevo alcalde elegido:', e.jugador_id);
-            cargarJuego();
-        })
     .listen('.tiempo.actualizado', (e: any) => {
         const contador = document.getElementById("contador");
         if (contador) {
@@ -146,10 +142,19 @@ echo.private(`game.${gameId}`)
         renderizarJugadores(e.jugadores)
         if (e.jugador_muerto) {
             narradorDecir(`El jugador ${e.jugador_muerto.nick} ha muerto.`);
+            cargarJuego();
         }
     })
     .listen('.NarradorHabla', (e: any) => {
         narradorDecir(e.mensaje);
+    })
+    .listen('.fin.partida', (e: any) => {
+        console.log("Fin de la partida recibido:", e);
+        
+        mostrarModalResultado({
+            mensaje: e.mensaje,
+            ganadores: e.ganadores
+        });
     });
 
     echo.private(`lobby.${gameId}`)
@@ -426,6 +431,36 @@ function narradorDecir(texto: string) {
     listaMensajes.scrollTop = listaMensajes.scrollHeight;
 }
 
+function mostrarModalResultado(data: { mensaje: string, ganadores: any[] }) {
+    const modal = document.getElementById("modal-resultado");
+    const titulo = document.getElementById("resultado-titulo");
+    const mensaje = document.getElementById("resultado-mensaje");
+    const lista = document.getElementById("resultado-lista");
+
+    if (!modal || !titulo || !mensaje || !lista) return;
+
+    modal.classList.add("activo");
+
+    mensaje.textContent = data.mensaje ?? "La partida ha terminado.";
+
+    lista.innerHTML = "";
+
+    if (data.ganadores && data.ganadores.length > 0) {
+        data.ganadores.forEach((g: any) => {
+            const div = document.createElement("div");
+            div.className = "resultado-jugador";
+            div.textContent = `${g.nick} – ${g.rol}`;
+            lista.appendChild(div);
+        });
+    }
+
+    modal.classList.add("activo");
+
+    const btnSalir = document.getElementById("btn-salir");
+    btnSalir?.addEventListener("click", () => {
+        window.location.href = "/HTML/dashboard.html";
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!partidaID || !token) return;

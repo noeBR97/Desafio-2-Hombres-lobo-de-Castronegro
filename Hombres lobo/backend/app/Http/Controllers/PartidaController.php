@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use App\Events\CambioDeFase;
 use App\Events\NarradorHabla;
 use App\Models\User;
+use App\Events\FinPartida;
 
 class PartidaController extends Controller
 {
@@ -398,6 +399,61 @@ public function rellenarConBots($idPartida)
     broadcast(new PartidaActualizada($partida->id))->toOthers();
 }
 
+private function comprobarFinDePartida($partida)
+{
+    $jugadoresVivos = JugadorPartida::where('id_partida', $partida->id)
+        ->where('vivo', true)
+        ->get();
+
+    $numLobos = $jugadoresVivos->where('rol_partida', 'lobo')->count();
+    $numAldeanos = $jugadoresVivos->where('rol_partida', '!=', 'lobo')->count();
+
+    $listaGanadores = null;
+    $mensajeFin = "";
+
+    if ($numLobos === 0 && $numAldeanos > 0) {
+        $mensajeFin = "¡Los aldeanos han ganado la partida! Han eliminado a todos los lobos.";
+        $listaGanadores = JugadorPartida::where('id_partida', $partida->id)
+            ->where('rol_partida', '!=', 'lobo')
+            ->get();
+    } elseif ($numLobos >= $numAldeanos && $numLobos > 0) {
+        $mensajeFin = "¡Los Hombres Lobo han ganado la partida! Han devorado a la aldea.";
+        $listaGanadores = JugadorPartida::where('id_partida', $partida->id)
+            ->where('rol_partida', 'lobo')
+            ->get();
+    }
+
+    if ($listaGanadores) {
+        $partida->estado = 'finalizada';
+        $partida->save();
+
+        $ganadoresFormateados = $listaGanadores->map(function ($jugador) {
+            $nick = 'Desconocido';
+            
+            if ($jugador->id_usuario) {
+                $user = User::find($jugador->id_usuario);
+                $nick = $user ? $user->nick : 'Humano';
+            } else {
+                $nick = $jugador->nick_bot;
+            }
+
+            return [
+                'nick' => $nick,
+                'rol'  => $jugador->rol_partida 
+            ];
+        })->toArray();
+
+        event(new FinPartida(
+            $partida->id,
+            $mensajeFin,
+            $ganadoresFormateados
+        ));
+        return true;
+    }
+
+    return false;
+}
+
 public function siguienteFase(Request $request, $id)
 {
     $partida = Partida::findOrFail($id);
@@ -466,6 +522,8 @@ public function siguienteFase(Request $request, $id)
     $partida->load('jugadores');
 
     broadcast(new CambioDeFase($partida))->toOthers();
+
+    $this->comprobarFinDePartida($partida);
 
     return response()->json([
         'mensaje' => 'Fase actualizada correctamente',
