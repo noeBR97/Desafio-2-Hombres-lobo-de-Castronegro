@@ -419,6 +419,12 @@ public function siguienteFase(Request $request, $id)
         }
 
         $faseQueTermina = $partida->fase_actual;
+        $botService = app(\App\Services\BotService::class);
+        if ($faseQueTermina === 'dia') {
+            $botService->generarVotosFinalFaseDia($partida);
+        } elseif ($faseQueTermina === 'noche') {
+            $botService->generarVotosFinalFaseNoche($partida);
+        }
 
         $votos = VotoPartida::where('id_partida', $partida->id)
             ->where('tipo_fase', $faseQueTermina)

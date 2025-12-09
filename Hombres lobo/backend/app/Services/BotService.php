@@ -148,6 +148,58 @@ class BotService
         }
     }
 
+    public function generarVotosFinalFaseDia(Partida $partida): void
+{
+    if ($partida->fase_actual !== 'dia') {
+        return;
+    }
+
+    $jugadoresVivos = JugadorPartida::where('id_partida', $partida->id)
+        ->where('vivo', true)
+        ->get();
+
+    $bots = $jugadoresVivos->where('es_bot', true);
+
+    if ($bots->isEmpty()) {
+        return;
+    }
+
+    foreach ($bots as $bot) {
+        if ($this->botYaHaVotadoEnFase($partida, $bot, 'dia')) {
+            continue;
+        }
+
+        $this->decidirVotoSinNombre($partida, $bot, $jugadoresVivos, 'dia');
+    }
+}
+
+public function generarVotosFinalFaseNoche(Partida $partida): void
+{
+    if ($partida->fase_actual !== 'noche') {
+        return;
+    }
+
+    $jugadoresVivos = JugadorPartida::where('id_partida', $partida->id)
+        ->where('vivo', true)
+        ->get();
+
+    $botsLobos = $jugadoresVivos->filter(function ($j) {
+        return $j->es_bot && strtolower((string)$j->rol_partida) === 'lobo';
+    });
+
+    if ($botsLobos->isEmpty()) {
+        return;
+    }
+
+    foreach ($botsLobos as $bot) {
+        if ($this->botYaHaVotadoEnFase($partida, $bot, 'noche')) {
+            continue;
+        }
+
+        $this->decidirVotoSinNombre($partida, $bot, $jugadoresVivos, 'noche');
+    }
+}
+
     private function detectarNombreJugadorEnMensaje(string $texto, $jugadores): ?JugadorPartida
     {
         $textoNorm = mb_strtolower($texto);
@@ -208,21 +260,38 @@ class BotService
         }
     }
 
-    private function decidirVotoSinNombre(
-        Partida $partida,
-        JugadorPartida $bot,
-        $jugadores,
-        string $tipoFase
-    ): void {
-        $r = mt_rand(1, 100);
-
-        if ($r <= 90) {
-            $objetivo = $this->elegirJugadorAleatorio($jugadores, $bot);
-            if ($objetivo) {
-                $this->emitirVotoBot($partida, $bot, $objetivo, $tipoFase);
-            }
-        }
+   private function decidirVotoSinNombre(
+    Partida $partida,
+    JugadorPartida $bot,
+    $jugadores,
+    string $tipoFase
+): void {
+    $r = mt_rand(1, 100);
+    if ($r > 90) {
+        return;
     }
+
+    $candidatos = $jugadores
+        ->where('vivo', true)
+        ->where('id', '!=', $bot->id);
+
+    if ($tipoFase === 'noche') {
+        $candidatos = $candidatos->filter(function ($j) {
+            return strtolower((string)$j->rol_partida) !== 'lobo';
+        });
+    }
+
+    $candidatos = $candidatos->values();
+
+    if ($candidatos->isEmpty()) {
+        return;
+    }
+
+    $objetivo = $candidatos->random();
+
+    $this->emitirVotoBot($partida, $bot, $objetivo, $tipoFase);
+}
+
 
     private function elegirJugadorAleatorio($jugadores, JugadorPartida $bot): ?JugadorPartida
     {
@@ -253,21 +322,30 @@ class BotService
     }
 
     private function emitirVotoBot(
-        Partida $partida,
-        JugadorPartida $bot,
-        JugadorPartida $objetivo,
-        string $tipoFase
-    ): void {
-        VotoPartida::updateOrCreate(
-            [
-                'id_partida' => $partida->id,
-                'id_jugador' => $bot->id,
-                'tipo_fase'  => $tipoFase,
-                'ronda'      => $partida->ronda_actual,
-            ],
-            [
-                'id_objetivo' => $objetivo->id,
-            ]
-        );
+    Partida $partida,
+    JugadorPartida $bot,
+    JugadorPartida $objetivo,
+    string $tipoFase
+): void {
+    if ($tipoFase === 'noche') {
+        $rolBot      = strtolower((string) $bot->rol_partida);
+        $rolObjetivo = strtolower((string) $objetivo->rol_partida);
+
+        if ($rolBot === 'lobo' && $rolObjetivo === 'lobo') {
+            return;
+        }
     }
+
+    VotoPartida::updateOrCreate(
+        [
+            'id_partida' => $partida->id,
+            'id_jugador' => $bot->id,
+            'tipo_fase'  => $tipoFase,
+            'ronda'      => $partida->ronda_actual,
+        ],
+        [
+            'id_objetivo' => $objetivo->id,
+        ]
+    );
+}
 }
