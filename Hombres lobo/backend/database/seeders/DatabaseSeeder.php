@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Partida;
+use App\Models\JugadorPartida;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,11 +17,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $usuarios = User::factory()->count(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $creadoresPartidas = $usuarios->random(4);
+
+        // se van a crear 4 partidas asociadas a un id de un usuario existente
+        foreach ($creadoresPartidas as $usuario) {
+            Partida::factory()->create([
+                'id_creador_partida' => $usuario->id,
+            ]);
+        }
     }
 }
