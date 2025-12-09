@@ -39,16 +39,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me',     [AuthController::class, 'me']);
     Route::post('/logout',[AuthController::class, 'logout']);
 
-    //grupo usuarios
+    //rutas solo de admin
+    Route::prefix('admin')
+        ->middleware('abilities:admin')
+        ->group(function() {
+            Route::prefix('usuarios')->group(function() {
+                Route::get('/', [AdminController::class, 'get_all']);
+                Route::get('/{user}', [AdminController::class, 'get_one']);
+                Route::get('/buscar', [AdminController::class, 'buscar']);
+                Route::put('/{user}', [AdminController::class, 'update']);
+                Route::delete('/{user}', [AdminController::class, 'delete']);
+            });
+        });
+        
     Route::prefix('usuarios')->group(function() {
-        //rutas de admin sobre usuarios
-        Route::get('/', [AdminController::class, 'get_all']);
-        Route::get('/{user}', [AdminController::class, 'get_one']);
-        Route::get('/buscar', [AdminController::class, 'buscar']);
-        Route::put('/{user}', [AdminController::class, 'update']);
-        Route::delete('/{user}', [AdminController::class, 'delete']);
-
-        //acciones de usuario
         Route::post('/actualizar-imagen', [UsuarioController::class, 'actualizarImagenPerfil']);
         Route::post('/elegir-avatar', [UsuarioController::class, 'elegirAvatar']);
     });
