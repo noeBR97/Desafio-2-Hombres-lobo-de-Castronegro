@@ -1,0 +1,225 @@
+import './style.css'
+import { 
+  validarPass, 
+  validarUserName, 
+  validarEmail, 
+  registrarUsuario, 
+  limpiarFormulario } from './TS/validarFormularioRegistro'
+
+document.addEventListener('DOMContentLoaded', () => {
+  const formulario = document.getElementById('formulario_registro')
+  const validMsg = document.getElementById('valid_msg') as HTMLElement
+  const errorMsg = document.querySelector('.error_msg') as HTMLElement
+  const botonRegistro = document.getElementById('registro') as HTMLButtonElement
+  const modal = document.querySelector('.modal') as HTMLDivElement
+  const overlay =document.querySelector('.modal_overlay') as HTMLDivElement
+  const cerrar = document.querySelector('.cerrar') as HTMLSpanElement
+  const btnReglas = document.getElementById('btn-abrir-reglas');
+  const modalReglas = document.getElementById('modal-reglas');
+  const cerrarReglas = document.getElementById('cerrar-reglas');
+
+  if (btnReglas && modalReglas && overlay) {
+    btnReglas.addEventListener('click', (e) => {
+      e.preventDefault();
+      modalReglas.style.display = 'block';
+      overlay.style.display = 'block';
+    });
+  }
+
+  if (cerrarReglas && modalReglas && overlay) {
+    cerrarReglas.addEventListener('click', () => {
+      modalReglas.style.display = 'none';
+      overlay.style.display = 'none';
+    });
+  }
+
+  botonRegistro.addEventListener('click', () => {
+    modal.style.display = 'block'
+    overlay.style.display = 'block'
+  })
+
+  cerrar.addEventListener('click', () => {
+    modal.style.display = 'none'
+    overlay.style.display = 'none'
+  })
+
+  overlay.addEventListener('click', () => {
+    modal.style.display = 'none'
+    overlay.style.display = 'none'
+  })
+
+  document
+  .querySelectorAll<HTMLSpanElement>(".toggle-clave")
+  .forEach((boton) => {
+    const idInput = boton.getAttribute("data-input");
+    if (!idInput) return;
+
+    const input = document.getElementById(idInput) as HTMLInputElement | null;
+    if (!input) return;
+
+    boton.addEventListener("click", () => {
+      const visible = input.type === "text";
+      input.type = visible ? "password" : "text";
+      boton.classList.toggle("activo", !visible);
+    });
+  });
+
+  formulario?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const nombre = (document.getElementById('nombre_registro') as HTMLInputElement).value
+    const apellido1 = (document.getElementById('apellido_registro') as HTMLInputElement).value
+    const apellido2 = (document.getElementById('apellido2_registro') as HTMLInputElement).value
+    const correo = (document.getElementById('email') as HTMLInputElement).value
+    const nick = (document.getElementById('username_registro') as HTMLInputElement).value
+    const clave = (document.getElementById('password_registro') as HTMLInputElement).value
+
+    const userOK = await validarUserName()
+    const passOK = validarPass()
+    const emailOK = validarEmail()
+
+    if (!passOK || !userOK || !emailOK) {
+      return
+    }
+
+    const respuesta = await registrarUsuario({
+      nombre,
+      apellido1,
+      apellido2,
+      correo,
+      nick,
+      clave
+    })
+
+    if (respuesta.usuario) {
+      console.log('Usuario creado: ', respuesta.usuario)
+      validMsg.textContent = 'Te has registrado correctamente!'
+      validMsg.classList.add('visible')
+
+      limpiarFormulario()
+
+      //login automatico tras registro
+      const loginRes = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'},
+        body: JSON.stringify({ correo, clave })
+      })
+      const loginData = await loginRes.json()
+      if (loginRes.ok && loginData.token) {
+        sessionStorage.setItem('auth_token', loginData.token)
+        sessionStorage.setItem('user', JSON.stringify(loginData.user))
+        window.location.href = '/HTML/dashboard.html'
+      }
+    } else {
+      console.log('Error: ', respuesta)
+      errorMsg.textContent = 'Error al registrar el usuario.'
+      errorMsg.classList.add('visible')
+    }
+  })
+    const botonLogin = document.getElementById('open-login') as HTMLButtonElement | null
+    const modalLogin = document.getElementById('login-modal') as HTMLDivElement | null
+    const cerrarLogin = document.getElementById('close-login') as HTMLButtonElement | null
+
+    const formLogin = document.getElementById('form-login') as HTMLFormElement | null
+    const inputCorreo = document.getElementById('correo') as HTMLInputElement | null
+    const inputClave = document.getElementById('clave') as HTMLInputElement | null
+    const errorLogin = document.getElementById('error-login') as HTMLParagraphElement | null    
+
+     // Abrir modal de LOGIN
+  botonLogin?.addEventListener('click', () => {
+    if (!modalLogin) return
+    modalLogin.style.display = 'block'
+    overlay.style.display = 'block'
+  })
+
+  // Cerrar con la X
+  cerrarLogin?.addEventListener('click', () => {
+    if (!modalLogin) return
+    modalLogin.style.display = 'none'
+    overlay.style.display = 'none'
+  })
+
+  // Cerrar con el botón "Cancelar"
+  const botonesCancelar = document.querySelectorAll<HTMLElement>('[data-dismiss="modal"]')
+  botonesCancelar.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!modalLogin) return
+      modalLogin.style.display = 'none'
+      overlay.style.display = 'none'
+    })
+  })
+
+  overlay.addEventListener('click', () => {
+    modal.style.display = 'none'
+    if (modalLogin) {
+      modalLogin.style.display = 'none'
+    }
+    overlay.style.display = 'none'
+  })
+
+// ===============================
+//  SUBMIT LOGIN (llamada a la API)
+// ===============================
+formLogin?.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  if (!inputCorreo || !inputClave || !errorLogin) return
+
+  // limpiar mensaje de error
+  errorLogin.hidden = true
+  errorLogin.textContent = ''
+  errorLogin.classList.remove('visible')
+
+  const correo = inputCorreo.value.trim()
+  const clave = inputClave.value
+
+  if (modalReglas) modalReglas.style.display = 'none';
+
+  try {
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ correo, clave }),
+  });
+
+  const data = await res.json().catch(() => ({} as any));
+
+  // Si el backend responde con error (401, etc.)
+  if (!res.ok || !data.ok) {
+    errorLogin.textContent =
+      (data as any).message || 'Correo o contraseña incorrectos';
+    errorLogin.hidden = false;
+    errorLogin.classList.add('visible');
+    return;
+  }
+
+  // Guardar token y usuario
+  sessionStorage.setItem('auth_token', data.token);
+  sessionStorage.setItem('user', JSON.stringify(data.user));
+
+  // (opcional) Si quieres solo loguear si hay token, pero sin saltar alerta chunga
+  if (!data.token) {
+    console.warn('Login sin token en la respuesta');
+  }
+
+  // Cerrar modal
+  modalLogin!.style.display = 'none';
+  overlay.style.display = 'none';
+  formLogin.reset();
+  errorLogin.hidden = true;
+  errorLogin.textContent = '';
+
+  // Redirección según rol
+  if (data.user && data.user.rol_corp === 'admin') {
+    window.location.href = '/HTML/admin.html';
+  } else {
+    window.location.href = '/HTML/dashboard.html';
+  }
+} catch (err) {
+  console.error(err);
+  errorLogin.textContent = 'Error de conexión con el servidor';
+  errorLogin.hidden = false;
+  errorLogin.classList.add('visible');
+}})});

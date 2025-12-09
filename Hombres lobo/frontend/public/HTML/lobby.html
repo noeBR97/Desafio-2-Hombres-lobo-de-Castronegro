@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sala de Espera - Hombres Lobo</title>
+    <link rel="icon" type="image/png" href="../../favicon.png">
+    <link rel="icon" href="../img/LOGO.jpg" type="image/png">
+    <link rel="stylesheet" href="../CSS/lobby.css">
+</head>
+<body>
+
+    <header class="lobby-encabezado">
+        <h1 id="nombre-partida">Cargando Partida...</h1>
+    </header>
+
+    <main class="lobby-contenedor">
+        
+        <section class="panel-jugadores">
+            <h2>Jugadores (<span id="contador-jugadores">0/30</span>)</h2>
+            <ul id="lista-jugadores" class="lista-jugadores">
+                <li class="slot-jugador empty">Esperando...</li>
+                <li class="slot-jugador empty">Esperando...</li>
+                <li class="slot-jugador empty">Esperando...</li>
+            </ul>
+        </section>
+
+    </main>
+    
+    <div class ="lobby-botones" id="lobby-botones">
+        <button id="btn-salir" class="btn-salir">Salir</button>
+        <button id="btn-iniciar" class="btn-iniciar" style="display: none;">Iniciar Partida</button>
+    </div>
+
+    <div class="murcielago"></div>
+    <script type="module" src="../../src/TS/lobby.ts"></script>
+</body>
+</html>

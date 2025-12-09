@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Hombres Lobo</title>
+    <link rel="icon" type="image/png" href="../../favicon.png">
+    <link rel="icon" href="img/LOGO.jpg" type="image/png">
+    <link rel="stylesheet" href="../CSS/dashboardstyle.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        
+        <section class="perfil-columna">
+            
+            <div class="perfil-info">
+                <div class="imagen-container">
+                    <img src="../img/avatar-predeterminado.png" alt="Avatar de usuario" class="avatar" id="avatar">
+                    <input type="file" id="input-subir-imagen" name="imagen-perfil" accept="image/*">
+                        <div class="avatar-menu" id="avatar-menu">
+                            <button data-action="subir-imagen">Subir imagen</button>
+                            <button data-action="elegir-avatar">Elegir avatar</button>
+                            <button data-action="editar-usuario">Editar Perfil</button>
+                        </div>  
+
+                        <div id="modal_avatares" class="modal-overlay">
+                            <div class="modal-contenido">
+                                <span class="cerrar">&times;</span>
+                                <h3>Elige tu avatar</h3>
+                                <div id="lista_avatares" class="avatar_grid"></div>
+                            </div>
+                        </div>
+                </div>
+                <span class="nick" id="nombre-usuario">default</span>
+            </div>
+
+            <div class="estadisticas" id="estadisticas-usuario">
+                <h3>Estadísticas:</h3>
+                <ul>
+                    <li id="usuario-partidas-jugadas">Partidas jugadas: x</li>
+                    <li id="usuario-victorias-partidas">Victorias: x</li>
+                    <li id="usuario-derrotas-partidas">Derrotas: x</li>
+                </ul>
+            </div>
+
+        </section>
+
+        <section class="partidas-columna">
+            
+            <h2>Partidas disponibles:</h2>
+            
+            <ul class="lista-partidas" id="lista-partidas">
+                <li>
+                    <span>- Partida_001</span>
+                    <button class="btn-unirse">Unirse</button>
+                </li>
+                
+            </ul>
+
+            <div class="botones-dashboard" id="botones-dashboard">
+                <button class="btn-cerrar-sesion" id="btn-cerrar-sesion">Cerrar Sesión</button>
+                <button class="btn-crear">Crear Partida</button>
+            </div>
+
+        </section>
+
+    </div>
+
+    <footer>
+      <div class="footer_container">
+        <p>© 2025 Hombres lobo de Castronegro. Todos los derechos reservados.</p>
+        <div>
+            <a href="" id="btn-abrir-reglas">Reglas del juego</a>
+        </div>
+      </div>
+    </footer>
+    <div id="modal-crear-partida" class="modal-overlay" style="display: none;">
+        <div class="modal-contenido">
+            <h2>Crear Nueva Partida</h2>
+            
+            <form id="form-crear-partida">
+                <label for="nombre-partida-input">Nombre de la Partida:</label>
+                <input type="text" id="nombre-partida-input" required maxlength="100">
+
+                <label for="total-jugadores">Total de jugadores: </label>
+                <input type="text" id="total-jugadores" placeholder="15-30" required>
+                <span id="mensaje-numero-jugadores"></span>
+                
+                <div class="modal-botones">
+                    <button type="button" class="btn-cancelar" id="btn-cancelar-crear">Cancelar</button>
+                    <button type="submit" class="btn-confirmar">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="editar-usuario" class="modal-overlay">
+        <div class="modal-contenido">
+            <input type="text" id="nuevo-nick" placeholder="Nuevo nombre de usuario">
+            <input type="password" id="nueva-clave" placeholder="Nueva contraseña">
+            <div class="modal-botones">
+                <button type="submit" class="btn-confirmar" id="btn-guardar-cambios">Guardar Cambios</button>
+                <button type="button" class="btn-cancelar" id="btn-cancelar-actualizar">Cancelar</button>
+                <span class="icono-ojo toggle-clave" data-input="nueva-clave"></span>
+            </div>
+        </div>
+    </div>
+    <div id="modal-reglas" class="modal-overlay">
+        <div class="modal-contenido-reglas">
+            <div class="cerrar-reglas" id="cerrar-reglas">X</div>
+            <h2>Reglas del juego</h2>
+            <div class="texto-reglas">
+                <h3>Objetivo</h3>
+                <p><strong>Aldeanos:</strong> Descubrir y eliminar a todos los Hombres Lobo.</p>
+                <p><strong>Hombres Lobo:</strong> Devorar a todos los Aldeanos haciéndose pasar por uno de ellos.</p>
+                
+                <h3>La Noche</h3>
+                <p>Todos cierran los ojos. Los Lobos despiertan y eligen una víctima. Vidente y Bruja actúan en secreto.</p>
+                
+                <h3>El Día</h3>
+                <p>El pueblo despierta y descubre quién ha muerto. Los supervivientes debaten y votan para linchar a un sospechoso.</p>
+                
+                <h3>Roles Clave</h3>
+                <ul>
+                    <li><strong>Vidente:</strong> Ve la carta de un jugador cada noche.</li>
+                    <li><strong>Bruja:</strong> Tiene una poción de vida y una de muerte.</li>
+                    <li><strong>Cazador:</strong> Si muere, dispara una última bala.</li>
+                    <li><strong>Cupido:</strong> Enamora a dos jugadores para siempre.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="../../src/TS/dashboard.ts"></script>
+</body>
+</html>
