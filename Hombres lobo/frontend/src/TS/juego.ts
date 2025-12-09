@@ -44,6 +44,7 @@ const inputMensaje = document.getElementById('input-mensaje') as HTMLInputElemen
 const btnEnviarMensaje = document.getElementById('enviar-mensaje') as HTMLButtonElement;
 const tableroJugadores = document.getElementById('juego-jugadores-chat') as HTMLDivElement;
 const tituloJuego = document.getElementById('titulo-juego');
+const btnAbandonar = document.getElementById('btn-abandonar') as HTMLButtonElement;
 
 //parámetros del juego
 const partidaID = getGameIdFromUrl();
@@ -462,10 +463,32 @@ function mostrarModalResultado(data: { mensaje: string, ganadores: any[] }) {
     });
 }
 
+async function abandonarPartida() {
+    if (!confirm("¿Estás seguro de que quieres abandonar la partida?")) {
+        return;
+    }
+
+    try {
+        await api.post(`/api/partidas/${partidaID}/salir`, {}, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        });
+        
+        window.location.href = '/HTML/dashboard.html';
+
+    } catch (error) {
+        console.error("Error al salir de la partida:", error);
+        window.location.href = '/HTML/dashboard.html';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     if (!partidaID || !token) return;
     conectarWebSockets(partidaID, token);
     cargarJuego();
     iniciarTemporizadorVisual();
     actualizarFondoYVotos();
+    btnAbandonar?.addEventListener('click', abandonarPartida);
 });
