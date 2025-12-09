@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Partida;
 use App\Models\JugadorPartida;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ use App\Events\PartidaActualizada;
 use App\Models\VotoPartida;
 use Illuminate\Support\Facades\DB; 
 use App\Events\CambioDeFase;
+use App\Services\BotService;
 use App\Events\NarradorHabla;
 use App\Models\User;
 use App\Events\FinPartida;
@@ -174,6 +176,7 @@ public function iniciar(Request $request, $id)
     for ($i = 0; $i < $lobosRestantes; $i++) {
         $rolesPool[] = 'lobo';
     }
+
     $slotsRestantes = $candidatos->count() - ($humanoLoboId ? 1 : 0);
 
     while (count($rolesPool) < $slotsRestantes) {
@@ -203,8 +206,10 @@ public function iniciar(Request $request, $id)
         ]);
     }
 
-    $partida->estado       = 'en_curso';
-    $partida->fecha_inicio = now();
+    $partida->estado        = 'en_curso';
+    $partida->fecha_inicio  = now();
+    $partida->fase_actual   = 'noche';
+    $partida->ronda_actual  = $partida->ronda_actual ?? 1;
     $partida->save();
 
     $partida->load('jugadores');
@@ -213,6 +218,9 @@ public function iniciar(Request $request, $id)
     broadcast(new AsignarRoles($partida))->toOthers();
 
     $this->asignarAlcaldeAleatorio($partida);
+
+    $botService = app(\App\Services\BotService::class);
+    $botService->lanzarFraseInicioNocheLobos($partida);
 
     return response()->json([
         'ok'      => true,
@@ -380,38 +388,54 @@ public function votar(Request $request)
     return response()->json(['message' => 'Voto registrado']);
 }
 
-public function rellenarConBots($idPartida)
+private function rellenarConBots(int $idPartida): void
 {
-    $partida = Partida::findOrFail($idPartida);
+    $partida = Partida::with('jugadores')->findOrFail($idPartida);
 
-    $totalActual  = JugadorPartida::where('id_partida', $idPartida)->count();
-    $maxJugadores = $partida->max_jugadores;
+    $maxJugadores = $partida->max_jugadores ?? 12;
 
+    $totalActual = $partida->jugadores->count();
     if ($totalActual >= $maxJugadores) {
         return;
     }
 
     $jugadoresFaltan = $maxJugadores - $totalActual;
 
-    $bots = [];
+    $idsUsuariosOcupados = $partida->jugadores
+        ->pluck('id_usuario')
+        ->filter()
+        ->unique()
+        ->values()
+        ->all();
 
-    for ($i = 0; $i < $jugadoresFaltan; $i++) {
-        $bots[] = [
-            'id_partida'  => $partida->id,
-            'id_usuario'  => null,
-            'es_bot'      => true,
-            'vivo'        => true,
-            'es_alcalde'  => false,
-            'rol_partida' => 'sin_asignar',
-            'nick_bot'    => 'Bot_'.str_pad($i + 1, 2, '0', STR_PAD_LEFT),
-            'created_at'  => now(),
-            'updated_at'  => now(),
-        ];
+    $usuariosBotDisponibles = User::where('rol_corp', 'bot')
+        ->whereNotIn('id', $idsUsuariosOcupados)
+        ->inRandomOrder()
+        ->take($jugadoresFaltan)
+        ->get();
+
+    if ($usuariosBotDisponibles->isEmpty()) {
+        return;
     }
 
-    JugadorPartida::insert($bots);
+    foreach ($usuariosBotDisponibles as $userBot) {
+        if ($totalActual >= $maxJugadores) {
+            break;
+        }
 
-    $partida->numero_jugadores += $jugadoresFaltan;
+        $jp = new JugadorPartida();
+        $jp->id_partida  = $partida->id;
+        $jp->id_usuario  = $userBot->id;
+        $jp->es_bot      = true;
+        $jp->vivo        = true;
+        $jp->es_alcalde  = false;
+        $jp->rol_partida = 'sin_asignar';
+        $jp->save();
+
+        $totalActual++;
+    }
+
+    $partida->numero_jugadores = $totalActual;
     $partida->save();
 
     broadcast(new PartidaActualizada($partida->id))->toOthers();
@@ -499,79 +523,124 @@ private function comprobarFinDePartida($partida)
 
 public function siguienteFase(Request $request, $id)
 {
-    $partida = Partida::findOrFail($id);
-    $faseCliente = $request->input('fase_actual_cliente');
+    try {
+        $partida = Partida::findOrFail($id);
+        $faseCliente = $request->input('fase_actual_cliente');
 
-    if ($partida->fase_actual !== $faseCliente) {
-        return response()->json(['mensaje' => 'La fase ya había cambiado, ignorando petición.'], 200);
-    }
-
-    $faseQueTermina = $partida->fase_actual;
-
-    $votos = VotoPartida::where('id_partida', $partida->id)
-        ->where('tipo_fase', $faseQueTermina)
-        ->where('ronda', $partida->ronda_actual)
-        ->get();
-
-    if ($votos->count() > 0) {
-        $conteo = [];
-
-        foreach ($votos as $voto) {
-            if ($voto->id_objetivo === null) {
-                continue;
-            }
-
-            $jugadorVotante = JugadorPartida::find($voto->id_jugador);
-            if (!$jugadorVotante || !$jugadorVotante->vivo) {
-                continue;
-            }
-            $peso = 1;
-            if ($faseQueTermina === 'dia' &&
-                !empty($jugadorVotante->es_alcalde) &&
-                (int)$jugadorVotante->es_alcalde === 1) {
-                $peso = 2;
-            }
-
-            if (!isset($conteo[$voto->id_objetivo])) {
-                $conteo[$voto->id_objetivo] = 0;
-            }
-            $conteo[$voto->id_objetivo] += $peso;
+        if ($partida->fase_actual !== $faseCliente) {
+            return response()->json([
+                'mensaje' => 'La fase ya había cambiado, ignorando petición.',
+                'fase'    => $partida->fase_actual,
+                'ronda'   => $partida->ronda_actual,
+            ], 200);
         }
 
-        if (!empty($conteo)) {
-            $idMasVotado = array_keys($conteo, max($conteo))[0];
-
-            $jugadorObjetivo = JugadorPartida::find($idMasVotado);
-            if ($jugadorObjetivo && $jugadorObjetivo->vivo) {
-                $jugadorObjetivo->vivo = false;
-                $jugadorObjetivo->save();
-            }
+        $faseQueTermina = $partida->fase_actual;
+        $botService = app(\App\Services\BotService::class);
+        if ($faseQueTermina === 'dia') {
+            $botService->generarVotosFinalFaseDia($partida);
+        } elseif ($faseQueTermina === 'noche') {
+            $botService->generarVotosFinalFaseNoche($partida);
         }
 
-        VotoPartida::where('id_partida', $partida->id)
+        $votos = VotoPartida::where('id_partida', $partida->id)
             ->where('tipo_fase', $faseQueTermina)
             ->where('ronda', $partida->ronda_actual)
-            ->delete();
+            ->get();
+
+        if ($votos->count() > 0) {
+            $conteo = [];
+
+            foreach ($votos as $voto) {
+                if ($voto->id_objetivo === null) {
+                    continue;
+                }
+
+                $jugadorVotante = JugadorPartida::find($voto->id_jugador);
+                if (!$jugadorVotante || !$jugadorVotante->vivo) {
+                    continue;
+                }
+
+                $peso = 1;
+                if (
+                    $faseQueTermina === 'dia' &&
+                    !empty($jugadorVotante->es_alcalde) &&
+                    (int)$jugadorVotante->es_alcalde === 1
+                ) {
+                    $peso = 2;
+                }
+
+                if (!isset($conteo[$voto->id_objetivo])) {
+                    $conteo[$voto->id_objetivo] = 0;
+                }
+                $conteo[$voto->id_objetivo] += $peso;
+            }
+
+            if (!empty($conteo)) {
+                $maxVotos     = max($conteo);
+                $candidatosId = array_keys($conteo, $maxVotos);
+                $idMasVotado  = $candidatosId[0];
+
+                $jugadorObjetivo = JugadorPartida::find($idMasVotado);
+                if ($jugadorObjetivo && $jugadorObjetivo->vivo) {
+                    $jugadorObjetivo->vivo = false;
+                    $jugadorObjetivo->save();
+                }
+            }
+
+            VotoPartida::where('id_partida', $partida->id)
+                ->where('tipo_fase', $faseQueTermina)
+                ->where('ronda', $partida->ronda_actual)
+                ->delete();
+        }
+
+        $faseAnterior = $partida->fase_actual;
+
+        if ($partida->fase_actual === 'noche') {
+            $partida->fase_actual = 'dia';
+        } else {
+            $partida->fase_actual = 'noche';
+            $partida->ronda_actual = $partida->ronda_actual ? $partida->ronda_actual + 1 : 1;
+        }
+
+        $partida->save();
+        $partida->load('jugadores');
+
+        $botService = app(\App\Services\BotService::class);
+
+        try {
+            if ($faseAnterior === 'noche' && $partida->fase_actual === 'dia') {
+                $botService->lanzarFraseInicioDia($partida);
+            } elseif ($faseAnterior === 'dia' && $partida->fase_actual === 'noche') {
+                $botService->lanzarFraseInicioNocheLobos($partida);
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Error en BotService al cambiar de fase: '.$e->getMessage());
+        }
+
+            try {
+                broadcast(new CambioDeFase($partida))->toOthers();
+            } catch (\Throwable $e) {
+                \Log::error('Error al emitir CambioDeFase: '.$e->getMessage(), [
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+
+        return response()->json([
+            'mensaje' => 'Fase actualizada correctamente',
+            'fase'    => $partida->fase_actual,
+            'ronda'   => $partida->ronda_actual,
+        ]);
+
+    } catch (\Throwable $e) {
+        \Log::error('Error en siguienteFase: '.$e->getMessage(), [
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        return response()->json([
+            'mensaje' => 'Error interno al cambiar de fase',
+            'error'   => $e->getMessage(),
+        ], 500);
     }
-
-    if ($partida->fase_actual === 'noche') {
-        $partida->fase_actual = 'dia';
-    } else {
-        $partida->fase_actual = 'noche';
-        $partida->ronda_actual++;
-    }
-
-    $partida->save();
-    $partida->load('jugadores');
-
-    broadcast(new CambioDeFase($partida))->toOthers();
-
-    $this->comprobarFinDePartida($partida);
-
-    return response()->json([
-        'mensaje' => 'Fase actualizada correctamente',
-        'fase'    => $partida->fase_actual,
-        'ronda'   => $partida->ronda_actual,
-    ]);
 }
 }
