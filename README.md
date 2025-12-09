@@ -14,7 +14,8 @@ El sistema permite:
 
 - Crear cuentas de usuario.
 - Iniciar sesión mediante **Laravel Sanctum**.
-- Consultar y editar avatar, nickname y estadísticas.
+- Editar avatar, nickname y contraseña.
+- Consultar estadísticas.
 - Gestionar roles corporativos: **usuario** o **administrador**.
 
 ---
@@ -150,3 +151,77 @@ Servicios disponibles:
 # 📝 Seeder con guardado de accesos
 
 Cada vez que se ejecuta:
+
+```php
+php artisan migrate:fresh --seed
+```
+
+se genera automáticamente el archivo: **storage/app/usuarios_generados.txt**
+que contiene:
+
+- ID de usuario
+- correo
+- contraseña en texto plano (solo pruebas)
+- rol corporativo
+
+Esto permite que cualquier persona que clone el proyecto pueda iniciar sesión sin importar manualmente la base de datos ✨
+
+---
+
+# 🎯 Uso de la aplicación
+
+Acceder al frontend:
+http://localhost:5173
+
+Flujo:
+
+1. Registrarse o iniciar sesión.
+2. Entrar al lobby.
+3. Unirse o crear partida.
+4. Esperar a que se complete el número de jugadores.
+5. Jugar en tiempo real con chat, votaciones y fases automáticas 🎉
+
+---
+
+# 🧪 Tests
+
+Tests incluidos:
+
+- Autenticación
+- Permisos de administrador
+- Funcionamiento básico
+
+Ejecutar:
+
+docker exec -it laravel_app php artisan test
+---
+
+# 🛠️ Tecnologías utilizadas
+
+- Laravel
+- Sanctum
+- Reverb
+- Echo
+- Docker
+- MySQL
+- Vite
+- TypeScript
+- Nginx
+
+---
+
+# 📌 Estado del proyecto
+
+- Backend estable
+- Chat en tiempo real operativo
+- Bots totalmente integrados
+- Motor de fases funcional
+- Estadísticas implementadas
+
+---
+
+# 👥 Autores
+
+José Enrique Águila Blanco
+Diego García Ángel
+Noelia Barrionuevo Romero
