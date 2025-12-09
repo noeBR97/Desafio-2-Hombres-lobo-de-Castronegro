@@ -424,6 +424,31 @@ private function comprobarFinDePartida($partida)
     }
 
     if ($listaGanadores) {
+
+        $todosLosJugadores = JugadorPartida::where('id_partida', $partida->id)->get();
+
+        foreach ($todosLosJugadores as $jugador) {
+            if (!$jugador->id_usuario) {
+                continue; 
+            }
+
+            $user = User::find($jugador->id_usuario);
+
+            if (!$user) continue;
+
+            $user->partidas_jugadas++;
+
+            $gana = $listaGanadores->contains('id', $jugador->id);
+
+            if ($gana) {
+                $user->partidas_ganadas++;
+            } else {
+                $user->partidas_perdidas++;
+            }
+
+            $user->save();
+        }
+
         $partida->estado = 'finalizada';
         $partida->save();
 
