@@ -17,6 +17,7 @@ use App\Events\PartidaActualizada;
 use App\Models\VotoPartida;
 use Illuminate\Support\Facades\DB; 
 use App\Events\CambioDeFase;
+use App\Services\BotService;
 
 class PartidaController extends Controller
 {
@@ -345,9 +346,9 @@ public function votar(Request $request)
 
 public function rellenarConBots($idPartida)
 {
-    $partida = Partida::findOrFail($idPartida);
+    $partida = Partida::with('jugadores')->findOrFail($idPartida);
 
-    $totalActual  = JugadorPartida::where('id_partida', $idPartida)->count();
+    $totalActual  = $partida->jugadores->count();
     $maxJugadores = $partida->max_jugadores;
 
     if ($totalActual >= $maxJugadores) {
@@ -356,25 +357,45 @@ public function rellenarConBots($idPartida)
 
     $jugadoresFaltan = $maxJugadores - $totalActual;
 
+    $idsUsuariosOcupados = $partida->jugadores
+        ->pluck('id_usuario')
+        ->filter()
+        ->unique()
+        ->values()
+        ->all();
+
+    $usuariosBotDisponibles = User::where('rol_corp', 'bot')
+        ->whereNotIn('id', $idsUsuariosOcupados)
+        ->inRandomOrder()
+        ->take($jugadoresFaltan)
+        ->get();
+
+    if ($usuariosBotDisponibles->isEmpty()) {
+        return;
+    }
+
     $bots = [];
 
-    for ($i = 0; $i < $jugadoresFaltan; $i++) {
+    foreach ($usuariosBotDisponibles as $userBot) {
         $bots[] = [
             'id_partida'  => $partida->id,
-            'id_usuario'  => null,
+            'id_usuario'  => $userBot->id,
             'es_bot'      => true,
             'vivo'        => true,
             'es_alcalde'  => false,
             'rol_partida' => 'sin_asignar',
-            'nick_bot'    => 'Bot_'.str_pad($i + 1, 2, '0', STR_PAD_LEFT),
             'created_at'  => now(),
             'updated_at'  => now(),
         ];
     }
 
+    if (empty($bots)) {
+        return;
+    }
+
     JugadorPartida::insert($bots);
 
-    $partida->numero_jugadores += $jugadoresFaltan;
+    $partida->numero_jugadores += count($bots);
     $partida->save();
 
     broadcast(new PartidaActualizada($partida->id))->toOthers();
@@ -408,6 +429,7 @@ public function siguienteFase(Request $request, $id)
             if (!$jugadorVotante || !$jugadorVotante->vivo) {
                 continue;
             }
+
             $peso = 1;
             if ($faseQueTermina === 'dia' &&
                 !empty($jugadorVotante->es_alcalde) &&
@@ -437,6 +459,8 @@ public function siguienteFase(Request $request, $id)
             ->delete();
     }
 
+    $faseAnterior = $partida->fase_actual;
+
     if ($partida->fase_actual === 'noche') {
         $partida->fase_actual = 'dia';
     } else {
@@ -446,6 +470,14 @@ public function siguienteFase(Request $request, $id)
 
     $partida->save();
     $partida->load('jugadores');
+
+    $botService = app(\App\Services\BotService::class);
+
+    if ($faseAnterior === 'noche' && $partida->fase_actual === 'dia') {
+        $botService->lanzarFraseInicioDia($partida);
+    } elseif ($faseAnterior === 'dia' && $partida->fase_actual === 'noche') {
+        $botService->lanzarFraseInicioNocheLobos($partida);
+    }
 
     broadcast(new CambioDeFase($partida))->toOthers();
 
