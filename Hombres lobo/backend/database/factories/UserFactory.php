@@ -5,30 +5,28 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-
+use App\Models\User;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
+    protected $model = User::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'nombre' => $this->faker->firstName(),
+            'apellido1' => $this->faker->lastName(),
+            'apellido2' => $this->faker->optional()->lastName(),
+            'nick' => $this->faker->unique()->userName(),
+            'correo' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            'clave' => Hash::make('secret'), //contraseña por defecto
+            'rol_corp' => 'usuario',
             'remember_token' => Str::random(10),
+            'avatar_url' => null,
+            'avatar_predefinido' => 'avatar-lobo.png'
         ];
     }
 
