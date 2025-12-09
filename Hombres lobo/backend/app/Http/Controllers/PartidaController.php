@@ -279,24 +279,39 @@ private function asignarAlcaldeAleatorio(Partida $partida): ?int
     $partida->load('jugadores');
 
     $vivos = $partida->jugadores->filter(function ($j) {
-        return (int) $j->pivot->vivo === 1 && !$j->pivot->es_bot;
+        return (int) $j->pivot->vivo === 1; 
     });
 
     if ($vivos->isEmpty()) {
-        return null;
+        $botVivo = JugadorPartida::where('id_partida', $partida->id)
+                    ->where('es_bot', true)
+                    ->where('vivo', true)
+                    ->inRandomOrder()
+                    ->first();
+        
+        if (!$botVivo) return null;
+        $alcalde = $botVivo; 
+    } else {
+        $alcalde = $vivos->random(); 
     }
 
-    $alcalde = $vivos->random();
+    JugadorPartida::where('id_partida', $partida->id)->update(['es_alcalde' => false]);
+    
+    $idTablaIntermedia = isset($alcalde->pivot) ? $alcalde->pivot->id : $alcalde->id;
 
-    foreach ($partida->jugadores as $jugador) {
-        $partida->jugadores()->updateExistingPivot($jugador->id, [
-            'es_alcalde' => $jugador->id === $alcalde->id,
-        ]);
+    JugadorPartida::where('id', $idTablaIntermedia)->update(['es_alcalde' => true]);
+
+    $nickAlcalde = 'Desconocido';
+    
+    if (isset($alcalde->nick)) {
+        $nickAlcalde = $alcalde->nick;
+    } elseif (isset($alcalde->nick_bot)) {
+        $nickAlcalde = $alcalde->nick_bot;
     }
 
-    broadcast(new AlcaldeElegido($partida->id, $alcalde->id))->toOthers();
+    broadcast(new AlcaldeElegido($partida->id, $idTablaIntermedia, $nickAlcalde))->toOthers();
 
-    return $alcalde->id;
+    return $idTablaIntermedia;
 }
 
 public function votar(Request $request)

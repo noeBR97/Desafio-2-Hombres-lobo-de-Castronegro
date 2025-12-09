@@ -13,11 +13,13 @@ class AlcaldeElegido implements ShouldBroadcast
 
     public int $partida_id;
     public int $jugador_id;
+    public $jugador_nick;
 
     public function __construct(int $partida_id, int $jugador_id)
     {
         $this->partida_id = $partida_id;
         $this->jugador_id = $jugador_id;
+        $this->jugador_nick = $jugador_nick;
     }
 
     public function broadcastOn()
