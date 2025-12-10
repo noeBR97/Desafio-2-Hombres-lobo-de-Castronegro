@@ -234,7 +234,7 @@ CLOUDINARY_CLOUD_NAME=dgkvtjyup
 ```
 
 ---
-#.env.testing
+# .env.testing
 ```
 APP_ENV=testing
 DB_CONNECTION=sqlite
