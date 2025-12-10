@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("Admin logueado:", usuario.nick);
 });
 
-const URL_API = "http://localhost:8000/api";
+const URL_API = `${window.location.origin}/api`;
 
 function obtenerToken(): string {
   const token = sessionStorage.getItem("auth_token");
@@ -85,36 +85,34 @@ async function peticionAutenticada(
   return respuesta.json();
 }
 
-// ===================================
 // FUNCIONES DE API
-// ===================================
 
-// GET /api/usuarios
+// GET /api/admin/usuarios
 async function cogerTodosLosUsuarios() {
-  return peticionAutenticada("/usuarios", { method: "GET" });
+  return peticionAutenticada("/admin/usuarios", { method: "GET" });
 }
 
-// GET /api/usuarios-buscar?busqueda=...
+// GET /api/admin/usuarios/buscar?busqueda=...
 async function cogerUnUsuario(idONick: string) {
   const q = encodeURIComponent(idONick);
-  return peticionAutenticada(`/usuarios-buscar?busqueda=${q}`, {
+  return peticionAutenticada(`/admin/usuarios/buscar?busqueda=${q}`, {
     method: "GET",
   });
 }
 
-// PUT /api/usuarios/{user}
+// PUT /api/admin/usuarios/{user}
 async function actualizarUsuario(idONick: string, datos: any) {
   const id = encodeURIComponent(idONick);
-  return peticionAutenticada(`/usuarios/${id}`, {
+  return peticionAutenticada(`/admin/usuarios/${id}`, {
     method: "PUT",
     body: JSON.stringify(datos),
   });
 }
 
-// DELETE /api/usuarios/{user}
+// DELETE /api/admin/usuarios/{user}
 async function borrarUsuario(idONick: string) {
   const id = encodeURIComponent(idONick);
-  return peticionAutenticada(`/usuarios/${id}`, {
+  return peticionAutenticada(`/admin/usuarios/${id}`, {
     method: "DELETE",
   });
 }
